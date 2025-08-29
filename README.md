@@ -34,7 +34,7 @@ c -> paste
 
 2. Replace
    
-3. Select text
+3. ~~Select text~~ 
 
 ## Contributing
 
