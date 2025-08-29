@@ -1,2 +1,26 @@
 # notec
-Text editor written in C
+
+notec is a nano/vim clone for windows
+
+## Build
+
+```bash
+make
+```
+
+## Usage
+
+```bash
+notec [file name]
+```
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first
+to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
