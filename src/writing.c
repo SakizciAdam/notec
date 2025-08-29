@@ -1,6 +1,13 @@
 #include "writing.h"
 
-
+char* text = NULL;
+int length = 0;
+int cursorX = 0;
+int cursorY = 0;
+int scrollX = 0;
+int scrollY = 0;
+int selStart = -1;
+int selEnd = -1;
 
 int getTextIndex(){
     int x=0;
@@ -115,6 +122,7 @@ void addCharAt(char c,int index){
 void initW(){
     selStart=-1;
     selEnd=-1;
+    
 
     text=malloc(sizeof(char));
     length=0;
