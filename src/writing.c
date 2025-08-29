@@ -2,8 +2,6 @@
 
 
 
-
-
 int getTextIndex(){
     int x=0;
     int y=0;
@@ -115,6 +113,9 @@ void addCharAt(char c,int index){
 
 
 void initW(){
+    selStart=-1;
+    selEnd=-1;
+
     text=malloc(sizeof(char));
     length=0;
   
@@ -124,23 +125,42 @@ void handleKeyW(char c){
     if((int)c==-32){
         return;
     }
-    if((int)c==8){
-        //BACKSPACE
-        int idx = getTextIndex();
-        if (idx > 0 && length > 0) {
-            for (int i = idx - 1; i < length - 1; i++) {
-                text[i] = text[i + 1];
+    if ((int)c == 8) {
+         // BACKSPACE
+        if (selStart != -1 && selEnd != -1 && selStart != selEnd) {
+    
+            int start = selStart < selEnd ? selStart : selEnd;
+            int end = selStart > selEnd ? selStart : selEnd;
+            int delLength = end - start;
+
+            for (int i = start; i < length - delLength; i++) {
+                text[i] = text[i + delLength];
             }
-            length--;
+            length -= delLength;
             text = realloc(text, length + 1);
-            if (text) {
-                text[length] = '\0';
-            }
-            if (cursorX > 0) {
-                cursorX--;
-            } else if (cursorY > 0) {
-                cursorY--;
-                cursorX = getLineLength(cursorY);
+            if (text) text[length] = '\0';
+
+            goToIndex(start);
+
+            selStart = -1;
+            selEnd = -1;
+        } else {
+
+            int idx = getTextIndex();
+            if (idx > 0 && length > 0) {
+                for (int i = idx - 1; i < length - 1; i++) {
+                    text[i] = text[i + 1];
+                }
+                length--;
+                text = realloc(text, length + 1);
+                if (text) text[length] = '\0';
+
+                if (cursorX > 0) {
+                    cursorX--;
+                } else if (cursorY > 0) {
+                    cursorY--;
+                    cursorX = getLineLength(cursorY);
+                }
             }
         }
         return;
@@ -201,6 +221,7 @@ void handleKeyW(char c){
         cursorX++;
         return;
     }
+
     if((int)c==9){
         //TAB
         for(int i=0;i<4;i++){
@@ -223,35 +244,27 @@ void handleKeyW(char c){
     
 }
 
-void renderW(){
-    cls();
+void renderW() {
+    cls(); 
+
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
 
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &sbInfo);
+    GetConsoleScreenBufferInfo(hOut, &sbInfo);
     int columns = sbInfo.dwSize.X;
     int rows = sbInfo.dwSize.Y;
     int textRows = rows - 1; 
 
-    if (cursorY < scrollY) {
-        scrollY = cursorY;
-    }
-    if (cursorY >= scrollY + textRows) {
-        scrollY = cursorY - textRows + 1;
-    }
-    if (cursorX < scrollX) {
-        scrollX = cursorX;
-    }
-    if (cursorX >= scrollX + columns) {
-        scrollX = cursorX - columns + 1;
-    }
+    if (cursorY < scrollY) scrollY = cursorY;
+    if (cursorY >= scrollY + textRows) scrollY = cursorY - textRows + 1;
+    if (cursorX < scrollX) scrollX = cursorX;
+    if (cursorX >= scrollX + columns) scrollX = cursorX - columns + 1;
 
     int currentLine = 0;
     int charIndex = 0;
-
     while (currentLine < scrollY && charIndex < length) {
-        if (text[charIndex] == '\n') {
-            currentLine++;
-        }
+        if (text[charIndex] == '\n') currentLine++;
         charIndex++;
     }
 
@@ -259,7 +272,7 @@ void renderW(){
         if (charIndex >= length) break;
 
         COORD linePos = {0, y};
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), linePos);
+        SetConsoleCursorPosition(hOut, linePos);
 
         int lineStartIndex = charIndex;
         int lineLength = 0;
@@ -268,36 +281,38 @@ void renderW(){
         }
 
         int renderStartIndex = lineStartIndex + scrollX;
-        if (renderStartIndex < lineStartIndex + lineLength) {
-            int charsToRender = lineLength - scrollX;
-            if (charsToRender > columns) {
-                charsToRender = columns;
-            }
-            if (charsToRender > 0) {
-                fwrite(text + renderStartIndex, 1, charsToRender, stdout);
+        int renderEndIndex = lineStartIndex + lineLength;
+        if (renderStartIndex < renderEndIndex) {
+            int charsToRender = renderEndIndex - renderStartIndex;
+            if (charsToRender > columns) charsToRender = columns;
+
+            for (int i = 0; i < charsToRender; i++) {
+                int idx = renderStartIndex + i;
+
+           
+                if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
+                    SetConsoleTextAttribute(hOut, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                } else {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                }
+
+                putchar(text[idx]);
             }
         }
-        
+
         charIndex = lineStartIndex + lineLength;
-        if (charIndex < length && text[charIndex] == '\n') {
-            charIndex++;
-        }
+        if (charIndex < length && text[charIndex] == '\n') charIndex++;
     }
+    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-
-    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
     COORD statusBarPos = {0, rows - 1};
-    SetConsoleCursorPosition(output, statusBarPos);
-    char statusBar[100];
-    float size = (float)length/1024;
-
-
-    
-    
-    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(),size);
-    printf("%s", statusBar);
-    
-
+    SetConsoleCursorPosition(hOut, statusBarPos);
+    char statusBar[128];
+    float size = (float)length / 1024.0f;
+    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(), size);
+    printf("%-*s", columns, statusBar); 
     COORD pos = {cursorX - scrollX, cursorY - scrollY};
-    SetConsoleCursorPosition(output, pos);
+    SetConsoleCursorPosition(hOut, pos);
+
+    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 }

@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <conio.h>
-#include <windows.h>
-#include <stdbool.h>
 #include "control.h"
 
 #define WRITING_MODE 0
@@ -61,8 +57,8 @@ int main(int argc, char **argv) {
                 
                 c=-32;
             }
-       
-       
+            //printf("%d %c\n",c,c);
+            
             if(mode==WRITING_MODE){
                 handleKeyW(c);
 

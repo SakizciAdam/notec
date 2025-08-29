@@ -16,42 +16,31 @@ void setStatusText(const char* input){
 void renderC() {
     cls();
 
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &sbInfo);
+    GetConsoleScreenBufferInfo(hOut, &sbInfo);
     int columns = sbInfo.dwSize.X;
     int rows = sbInfo.dwSize.Y;
     int textRows = rows - 1; 
-
-    if (cursorY < scrollY) {
-        scrollY = cursorY;
-    }
-    if (cursorY >= scrollY + textRows) {
-        scrollY = cursorY - textRows + 1;
-    }
-    if (cursorX < scrollX) {
-        scrollX = cursorX;
-    }
-    if (cursorX >= scrollX + columns) {
-        scrollX = cursorX - columns + 1;
-    }
+    if (cursorY < scrollY) scrollY = cursorY;
+    if (cursorY >= scrollY + textRows) scrollY = cursorY - textRows + 1;
+    if (cursorX < scrollX) scrollX = cursorX;
+    if (cursorX >= scrollX + columns) scrollX = cursorX - columns + 1;
 
     int currentLine = 0;
     int charIndex = 0;
-
-
     while (currentLine < scrollY && charIndex < length) {
-        if (text[charIndex] == '\n') {
-            currentLine++;
-        }
+        if (text[charIndex] == '\n') currentLine++;
         charIndex++;
     }
 
-    // Render
+
     for (int y = 0; y < textRows; y++) {
         if (charIndex >= length) break;
 
         COORD linePos = {0, y};
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), linePos);
+        SetConsoleCursorPosition(hOut, linePos);
 
         int lineStartIndex = charIndex;
         int lineLength = 0;
@@ -60,46 +49,125 @@ void renderC() {
         }
 
         int renderStartIndex = lineStartIndex + scrollX;
-        if (renderStartIndex < lineStartIndex + lineLength) {
-            int charsToRender = lineLength - scrollX;
-            if (charsToRender > columns) {
-                charsToRender = columns;
-            }
-            if (charsToRender > 0) {
-                fwrite(text + renderStartIndex, 1, charsToRender, stdout);
+        int renderEndIndex = lineStartIndex + lineLength;
+        if (renderStartIndex < renderEndIndex) {
+            int charsToRender = renderEndIndex - renderStartIndex;
+            if (charsToRender > columns) charsToRender = columns;
+
+            for (int i = 0; i < charsToRender; i++) {
+                int idx = renderStartIndex + i;
+
+           
+                if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
+                    SetConsoleTextAttribute(hOut, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                } else {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                }
+
+                putchar(text[idx]);
             }
         }
-        
+
         charIndex = lineStartIndex + lineLength;
-        if (charIndex < length && text[charIndex] == '\n') {
-            charIndex++;
-        }
+        if (charIndex < length && text[charIndex] == '\n') charIndex++;
     }
+    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
     COORD statusBarPos = {0, rows - 1};
-    SetConsoleCursorPosition(output, statusBarPos);
+    SetConsoleCursorPosition(hOut, statusBarPos);
 
-    for (int i = 0; i < columns; i++) {
-        printf(" ");
-    }
-    SetConsoleCursorPosition(output, statusBarPos);
-  
+    for (int i = 0; i < columns; i++) printf(" ");
+    SetConsoleCursorPosition(hOut, statusBarPos);
+
     const char* prefix = "notec | v1.0 | ";
     printf("%s", prefix);
 
     if (statusLength > 0) {
         printf("%s", statusText);
     }
-    COORD pos = { columns, rows - 1 };
-    SetConsoleCursorPosition(output, pos);
-    
+
+
+    COORD pos = {columns, rows - 1};
+    SetConsoleCursorPosition(hOut, pos);
+
+
+    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 }
 
 void reset(){
     setStatusText(" ");
     renderC();
 
+}
+char* backupText;
+
+void moveSelectionUpLine() {
+    if (selStart == -1 || selEnd == -1) return;
+
+
+    int x = 0, y = 0;
+    for (int i = 0; i < selStart && i < length; i++) {
+        if (text[i] == '\n') {
+            y++;
+            x = 0;
+        } else {
+            x++;
+        }
+    }
+
+    if (y == 0) return; 
+
+
+    y--;
+
+
+    int newIndex = 0;
+    int cx = 0, cy = 0;
+    while (newIndex < length && cy < y) {
+        if (text[newIndex] == '\n') cy++;
+        newIndex++;
+    }
+
+
+    while (newIndex < length && text[newIndex] != '\n' && cx < x) {
+        cx++;
+        newIndex++;
+    }
+
+    selStart = newIndex;
+}
+
+void moveSelectionDownLine() {
+    if (selStart == -1 || selEnd == -1) return;
+
+
+    int x = 0, y = 0;
+    for (int i = 0; i < selStart && i < length; i++) {
+        if (text[i] == '\n') {
+            y++;
+            x = 0;
+        } else {
+            x++;
+        }
+    }
+
+    if (y >= getMaxLine() - 1) return;
+
+    y++;
+
+    int newIndex = 0;
+    int cx = 0, cy = 0;
+    while (newIndex < length && cy < y) {
+        if (text[newIndex] == '\n') cy++;
+        newIndex++;
+    }
+
+    while (newIndex < length && text[newIndex] != '\n' && cx < x) {
+        cx++;
+        newIndex++;
+    }
+
+    selStart = newIndex;
 }
 
 void handleKeyC(char c) {
@@ -108,8 +176,74 @@ void handleKeyC(char c) {
         free(statusText);
         exit(0);
     }
-    if(c=='b'){
-        reset();
+    if((int)c==72){
+        moveSelectionUpLine();
+        return;
+    }
+    if((int)c==80){
+        moveSelectionDownLine();
+        return;
+    }
+    if((int)c==77){
+        //RIGHT
+        if(selStart==-1&&selEnd==-1){
+            selStart=getTextIndex();
+            selEnd=selStart;
+        }
+        selEnd++;
+        if(selEnd>=length-1){
+            selEnd=length-1;
+        }
+        setStatusText("Selected");
+    }
+    if((int)c==75){
+        //LEFT
+        if(selStart==-1&&selEnd==-1){
+            selStart=getTextIndex()-1;
+            selEnd=selStart+2;
+        }
+        selEnd--;
+       
+        setStatusText("Selected");
+        if(selEnd==selStart){
+            selEnd=selStart=-1;
+            setStatusText("Unselected");
+        }
+    }
+    if(c=='c'){
+        if (selStart == -1 || selEnd == -1 || selStart == selEnd) {
+            return; 
+        }
+        setStatusText("Error");
+        int start = selStart < selEnd ? selStart : selEnd;
+        int end = selStart > selEnd ? selStart : selEnd;
+        int lengthToCopy = end - start;
+
+        if (lengthToCopy <= 0) return;
+
+  
+        if (!OpenClipboard(NULL)) return;
+
+  
+        EmptyClipboard();
+
+
+        HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, lengthToCopy + 1);
+        if (!hMem) {
+            CloseClipboard();
+            
+            return;
+        }
+
+
+        memcpy(GlobalLock(hMem), text + start, lengthToCopy);
+        GlobalUnlock(hMem);
+
+
+        SetClipboardData(CF_TEXT, hMem);
+
+        CloseClipboard();
+        setStatusText("Copied");
     }
     if(c=='v'){
         if (!OpenClipboard(NULL)) {
@@ -159,6 +293,7 @@ void handleKeyC(char c) {
         GlobalUnlock(hData);
         CloseClipboard();
     }
+
     if(c=='g'){
         reset();
         printf("Go to: ");
@@ -180,7 +315,6 @@ void handleKeyC(char c) {
         printf("\nSaving to %s\n",saveLocation);
         FILE *fptr;
 
-        // Open a file in append mode
         fptr = fopen(saveLocation, "r");
         if(fptr!=NULL){
             cls();

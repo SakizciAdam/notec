@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include <conio.h>  
 
-char* text;
+ char* text;
 int length;
-int cursorX;
-int cursorY;
+ int cursorX;
+ int cursorY;
 int scrollX;
-int scrollY;
+ int scrollY;
+int selStart;
+ int selEnd;
+
 
 void handleKeyW(char c);
 
