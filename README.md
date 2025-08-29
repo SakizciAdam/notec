@@ -24,10 +24,16 @@ w -> save
 
 f -> find
 
+c -> copy
+
+c -> paste
+
 ## TODO
 
-1. Copy/paste
+1. ~~Copy/paste~~ 
+
 2. Replace
+   
 3. Select text
 
 ## Contributing
