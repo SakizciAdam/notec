@@ -2,22 +2,24 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -O2
 
 TARGET = build/notec
+SRCDIR = src
+BUILDDIR = build
 
-SRCS = main.c control.c writing.c utils.c
-OBJS = $(patsubst %.c, build/%.o, $(SRCS))
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCS))
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-build/%.o: %.c | build
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build:
-	mkdir -p build
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
 
 clean:
-	rm -rf build
+	rm -rf $(BUILDDIR)
 
 .PHONY: all clean

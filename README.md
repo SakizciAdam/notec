@@ -1,6 +1,7 @@
 # notec
 
 notec is a nano/vim clone for windows
+im too lazy to port it to linux
 
 ## Build
 
