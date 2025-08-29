@@ -5,6 +5,7 @@
         "stdbool.h": "c",
         "conio.h": "c",
         "writing.h": "c",
-        "xlocale": "c"
+        "xlocale": "c",
+        "stdio.h": "c"
     }
 }

@@ -8,10 +8,9 @@ void initC(){
 }
 
 void setStatusText(const char* input){
-    int len=sizeof(input)/sizeof(char);
-
-    statusText=input;
-    statusLength=len;
+    strncpy(statusText, input, 199);
+    statusText[199] = '\0'; // Ensure null-termination
+    statusLength = strlen(statusText);
 }
 
 void renderC() {
@@ -111,6 +110,54 @@ void handleKeyC(char c) {
     }
     if(c=='b'){
         reset();
+    }
+    if(c=='v'){
+        if (!OpenClipboard(NULL)) {
+            setStatusText("Error");
+
+            return;
+        }
+
+        HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+        if (hData == NULL) {
+            setStatusText("No text in clipboard");
+
+            return;
+        }
+
+        wchar_t *wText  = (wchar_t *)GlobalLock(hData);
+        if (wText  == NULL) {
+            setStatusText("Error");
+            CloseClipboard();
+            return;
+        }
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wText, -1, NULL, 0, NULL, NULL);
+        char *buffer = malloc(sizeNeeded);
+        if (buffer) {
+            setStatusText("Pasted");
+            int oldIndex=getTextIndex();
+            WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
+            for(int i=0;i<strlen(buffer);i++){
+                char ch=buffer[i];
+         
+                if((int)ch==13){
+                    //handleKeyW('x');
+                }
+                else if((int)ch==9){
+                    handleKeyW('#');
+                }
+                else if(isascii(ch)){
+                    handleKeyW(ch);
+                    
+                }
+            }
+            goToIndex(oldIndex);
+            //free(buffer);
+        }
+
+   
+        GlobalUnlock(hData);
+        CloseClipboard();
     }
     if(c=='g'){
         reset();

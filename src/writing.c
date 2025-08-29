@@ -72,7 +72,26 @@ int getMaxLine(){
 }
 
 
-
+void addSubstringAt(const char* substr, int index) {
+    if (!substr || index < 0 || index > length) {
+        return;
+    }
+    int substr_len = strlen(substr);
+    if (substr_len == 0) {
+        return;
+    }
+    char *new_text = realloc(text, length + substr_len + 1);
+    if (!new_text) {
+        return;
+    }
+    text = new_text;
+    for (int i = length - 1; i >= index; i--) {
+        text[i + substr_len] = text[i];
+    }
+    memcpy(text + index, substr, substr_len);
+    length += substr_len;
+    text[length] = '\0';
+}
 
 
 void addCharAt(char c,int index){
@@ -203,7 +222,7 @@ void handleKeyW(char c){
     }
     
 }
-char* unit;
+
 void renderW(){
     cls();
 
@@ -270,27 +289,12 @@ void renderW(){
     COORD statusBarPos = {0, rows - 1};
     SetConsoleCursorPosition(output, statusBarPos);
     char statusBar[100];
-    float size = (float)length;
+    float size = (float)length/1024;
 
-    if(unit==NULL){
-        unit=malloc(sizeof(char)*2);
-    }
 
-    unit="B";
-    char sizes[3][2] = {"KB", "MB",
-                       "GB"};
-    int count=0;
-    while(size>1024){
-        unit[0]=sizes[count][0];
-        unit[1]=sizes[count][1];
-        size/=1024;
-        count++;
-        if(count>=3){
-            break;
-        }
-    }
     
-    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f %s", cursorY + 1, cursorX + 1, getMaxLine(),size,unit);
+    
+    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(),size);
     printf("%s", statusBar);
     
 

@@ -7,7 +7,6 @@
 #define WRITING_MODE 0
 #define CONTROL_MODE 1
 
-
 int main(int argc, char **argv) {
     int mode=WRITING_MODE;
     initW();
