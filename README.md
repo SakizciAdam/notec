@@ -36,6 +36,8 @@ c -> paste
    
 3. ~~Select text~~ 
 
+4. Configuration
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
