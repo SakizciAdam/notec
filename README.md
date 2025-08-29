@@ -14,6 +14,21 @@ make
 ```bash
 notec [file name]
 ```
+Press ESC to change between writing and CTRL mode.
+
+While in CTRL mode:
+
+q -> to quit without saving
+
+w -> save
+
+f -> find
+
+## TODO
+
+1. Copy/paste
+2. Replace
+3. Select text
 
 ## Contributing
 
