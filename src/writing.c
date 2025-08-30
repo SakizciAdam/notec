@@ -8,6 +8,7 @@ int scrollX = 0;
 int scrollY = 0;
 int selStart = -1;
 int selEnd = -1;
+bool arrow=false;
 
 int getTextIndex(){
     int x=0;
@@ -130,7 +131,11 @@ void initW(){
 }
 
 void handleKeyW(char c){
+    if((int)c==-9999){
+        return;
+    }
     if((int)c==-32){
+        arrow=true;
         return;
     }
     if ((int)c == 8&&!readOnly) {
@@ -174,7 +179,7 @@ void handleKeyW(char c){
         return;
     }
     
-    else if((int)c==72){
+    else if((int)c==72&&arrow){
         if(cursorY>0){
             int previousLineLength=getLineLength(cursorY-1);
 
@@ -185,10 +190,11 @@ void handleKeyW(char c){
                 cursorY--;
             }
         }
+        arrow=false;
         
         return;
     }
-    else if((int)c==80){
+    else if((int)c==80&&arrow){
         if(cursorY+1==getMaxLine()){
             cursorX=getLineLength(cursorY);
             return;
@@ -197,9 +203,10 @@ void handleKeyW(char c){
         if(cursorX>getLineLength(cursorY)){
             cursorX=getLineLength(cursorY);
         }
+        arrow=false;
         return;
     }
-    else if((int)c==75){
+    else if((int)c==75&&arrow){
         //LEFT
         cursorX--;
         if(cursorX<0){
@@ -212,10 +219,10 @@ void handleKeyW(char c){
             
         }
       
-
+        arrow=false;
         return;
     }
-    else if((int)c==77){
+    else if((int)c==77&&arrow){
         //RIGHT
         if(cursorX==getLineLength(cursorY)){
             if(cursorY+1>=getMaxLine()){
@@ -227,6 +234,7 @@ void handleKeyW(char c){
             return;
         }
         cursorX++;
+        arrow=false;
         return;
     }
 
@@ -260,7 +268,6 @@ void renderW() {
     cls(); 
 
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
 
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
     GetConsoleScreenBufferInfo(hOut, &sbInfo);
@@ -298,17 +305,145 @@ void renderW() {
             int charsToRender = renderEndIndex - renderStartIndex;
             if (charsToRender > columns) charsToRender = columns;
 
-            for (int i = 0; i < charsToRender; i++) {
+            int i = 0;
+            while (i < charsToRender) {
                 int idx = renderStartIndex + i;
+                char c = text[idx];
 
-           
                 if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
                     SetConsoleTextAttribute(hOut, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                } else {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    putchar(c);
+                    i++;
+                    continue;
                 }
 
-                putchar(text[idx]);
+                if (c == '/' && idx + 1 < length && text[idx + 1] == '/') {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_GREEN | FOREGROUND_BLUE); // cyan-ish
+                    while (i < charsToRender) {
+                        putchar(text[renderStartIndex + i]);
+                        i++;
+                    }
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                }
+                if (c == '"') {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_GREEN);
+                    putchar(c);
+                    i++;
+                    while (i < charsToRender) {
+                        idx = renderStartIndex + i;
+                        putchar(text[idx]);
+                        if (text[idx] == '"') {
+                            i++;
+                            break;
+                        }
+                        i++;
+                    }
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                }
+
+                if (isdigit(c)) {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN); 
+                    putchar(c);
+                    i++;
+                    while (i < charsToRender && isdigit(text[renderStartIndex + i])) {
+                        putchar(text[renderStartIndex + i]);
+                        i++;
+                    }
+
+                    if (i < charsToRender) {
+                        char suffix = text[renderStartIndex + i];
+                        if (suffix == 'f' || suffix == 'F' || suffix == 'd' || suffix == 'D' ||
+                            suffix == 'u' || suffix == 'U' || suffix == 'l' || suffix == 'L') {
+                            putchar(suffix);
+                            i++;
+                        }
+                    }
+
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
+                    continue;
+                }
+                if (c == '#' && i == 0) { 
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_BLUE);
+                    while (i < charsToRender) {
+                        char pc = text[renderStartIndex + i];
+                        putchar(pc);
+                        i++;
+                        if (pc == '\n') break;
+                    }
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                    continue;
+                }
+                if (c == '\'') {
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN); 
+                    putchar(c);
+                    i++;
+                    while (i < charsToRender) {
+                        idx = renderStartIndex + i;
+                        char pc = text[idx];
+                        putchar(pc);
+                        i++;
+
+                        if (pc == '\'' && text[idx - 1] != '\\') {
+                            break;
+                        }
+                    }
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
+                    continue;
+                }
+                if ((c == '=' && idx + 1 < length && text[idx + 1] == '=') ||
+                    c == '{' || c == '}' || c == '(' || c == ')' || c == '[' || c == ']') {
+
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_INTENSITY); 
+                    putchar(c);
+
+                    if (c == '=' && text[idx + 1] == '=') {
+                        putchar('=');
+                        i++; 
+                    }
+
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
+                    i++;
+                    continue;
+                }
+                if (isalpha(c) || c == '_') {
+                    char buf[64];
+                    int bi = 0;
+                    int j = i;
+                    while (j < charsToRender && (isalnum(text[renderStartIndex + j]) || text[renderStartIndex + j] == '_') && bi < 63) {
+                        buf[bi++] = text[renderStartIndex + j];
+                        j++;
+                    }
+                    buf[bi] = '\0';
+
+                    const char *keywords[] = {"int","char","if","else","for","while","return","void","struct","typedef","float","double"
+                    ,"uint","int32","short","ushort","long","let","var","const"}; //probably missing a ton
+                    int isKw = 0;
+                    for (int k = 0; k < sizeof(keywords)/sizeof(keywords[0]); k++) {
+                        if (strcmp(buf, keywords[k]) == 0) { isKw = 1; break; }
+                    }
+
+                    if (isKw) {
+                        SetConsoleTextAttribute(hOut, FOREGROUND_BLUE | FOREGROUND_GREEN); 
+                    } else {
+                        int nextIdx = renderStartIndex + j;
+                        while (nextIdx < length && (text[nextIdx] == ' ' || text[nextIdx] == '\t')) nextIdx++;
+                        if (nextIdx < length && text[nextIdx] == '(') {
+                            SetConsoleTextAttribute(hOut, FOREGROUND_BLUE | FOREGROUND_INTENSITY); 
+                        }
+                    }
+
+                    for (int k = 0; k < bi; k++) putchar(buf[k]);
+                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
+
+                    i = j;
+                    continue;
+                }
+
+                SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+                putchar(c);
+                i++;
             }
         }
 
@@ -323,15 +458,14 @@ void renderW() {
     float size = (float)length / 1024.0f;
     snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(), size);
 
-    if(readOnly){
-        strcat(statusBar," | Readonly");
+    if (readOnly) {
+        strcat(statusBar, " | Readonly");
     }
 
-    if(fileSet){
+    if (fileSet) {
         char *t = (char*)malloc(50 * sizeof(char));
-
         sprintf(t, " | %s", fileName);
-        strcat(statusBar,t);
+        strcat(statusBar, t);
         free(t);
     }
 

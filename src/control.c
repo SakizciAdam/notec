@@ -171,7 +171,9 @@ void moveSelectionDownLine() {
 }
 
 void handleKeyC(char c) {
-    if(c=='q'){
+    char lower=tolower(c);
+    arrow=false;
+    if(lower=='q'){
         exit(0);
     }
     if((int)c==72){
@@ -208,7 +210,7 @@ void handleKeyC(char c) {
             setStatusText("Unselected");
         }
     }
-    char lower=tolower(c);
+    
     if(lower=='a'){
         selStart=0;
         selEnd=length;

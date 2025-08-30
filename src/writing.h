@@ -13,6 +13,7 @@ extern int scrollX;
 extern int scrollY;
 extern int selStart;
 extern int selEnd;
+extern bool arrow;
 
 void handleKeyW(char c);
 

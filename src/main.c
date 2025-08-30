@@ -12,9 +12,13 @@ int main(int argc, char **argv) {
 
      
         FILE *file = fopen(argv[1], "rb"); 
+        int startingIndex=2;
+        
         fileName=realloc(fileName,sizeof(char)*(strlen(argv[1])+1));
         fileSet=true;
+        
         strcpy(fileName,argv[1]);
+        
         if (file) {
             fseek(file, 0, SEEK_END);
             long len = ftell(file);
@@ -91,7 +95,7 @@ int main(int argc, char **argv) {
                 
                 mode=1-mode;
                 
-                c=-32;
+                c=-9999;
             }
             //printf("%d %c\n",c,c);
             
