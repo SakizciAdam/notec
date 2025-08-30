@@ -208,11 +208,12 @@ void handleKeyC(char c) {
             setStatusText("Unselected");
         }
     }
-    if(c=='a'){
+    char lower=tolower(c);
+    if(lower=='a'){
         selStart=0;
         selEnd=length;
     }
-    if(c=='c'){
+    if(lower=='c'){
         if (selStart == -1 || selEnd == -1 || selStart == selEnd) {
             return; 
         }
@@ -247,7 +248,7 @@ void handleKeyC(char c) {
         CloseClipboard();
         setStatusText("Copied");
     }
-    if(c=='v'){
+    if(lower=='v'){
         if (!OpenClipboard(NULL)) {
             setStatusText("Error");
 
@@ -296,7 +297,7 @@ void handleKeyC(char c) {
         CloseClipboard();
     }
 
-    if(c=='g'){
+    if(lower=='g'){
         reset();
         printf("Go to: ");
         int lineNumber;
@@ -309,7 +310,7 @@ void handleKeyC(char c) {
         cursorY=lineNumber-1;
         cursorX=0;
     }
-    if(c=='w'){
+    if(lower=='w'){
         reset();
 
         if(fileSet){
@@ -364,7 +365,7 @@ void handleKeyC(char c) {
         setStatusText("File saved");
     }
 
-    if(c=='f'){
+    if(lower=='f'){
         reset();
    
         int count=0;
