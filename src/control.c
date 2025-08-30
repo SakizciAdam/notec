@@ -113,14 +113,53 @@ void renderC() {
     free(attrBuf);
 }
 
+void getInput(const char* prompt, char* buffer, int bufferSize) {
+    int len = 0;
+    buffer[0] = '\0';
+    setStatusText(prompt);
 
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD mode;
+    GetConsoleMode(hIn, &mode);
+    SetConsoleMode(hIn, mode & ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT));
+
+    bool done = false;
+    while (!done) {
+        char display[256];
+        snprintf(display, sizeof(display), "%s%s", prompt, buffer);
+        setStatusText(display);
+
+        renderC();
+
+        INPUT_RECORD rec;
+        DWORD read;
+        ReadConsoleInput(hIn, &rec, 1, &read);
+
+        if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) {
+            char c = rec.Event.KeyEvent.uChar.AsciiChar;
+
+            if (c == '\r') {
+                done = true;
+            } else if (c == '\b') {
+                if (len > 0) {
+                    len--;
+                    buffer[len] = '\0';
+                }
+            } else if (len < bufferSize - 1 && isprint(c)) {
+                buffer[len++] = c;
+                buffer[len] = '\0';
+            }
+        }
+    }
+
+    SetConsoleMode(hIn, mode);
+}
 
 void reset(){
     setStatusText(" ");
     renderC();
 
 }
-
 
 void moveSelectionUpLine() {
     if (selStart == -1) return; 
@@ -278,9 +317,9 @@ void pasteClipboard() {
 
 void goToLine() {
     reset();
-    printf("Go to: ");
-    int lineNumber;
-    scanf("%d", &lineNumber);
+    char input[20];
+    getInput("Go to: ", input, sizeof(input));
+    int lineNumber = atoi(input);
     if (lineNumber > getMaxLine() || lineNumber <= 0) {
         setStatusText("Line does not exist");
         return;
@@ -289,59 +328,63 @@ void goToLine() {
     cursorX = 0;
 }
 
+
 void saveFile() {
     reset();
     if (fileSet) {
-        printf("Save to %s? y/N", fileName);
-        char resp;
-        scanf(" %c", &resp);
-        if (!(resp == 'y' || resp == 'Y')) fileSet = false;
+        char resp[4] = "";
+        getInput("Save to current file? y/N: ", resp, sizeof(resp));
+        if (!(resp[0] == 'y' || resp[0] == 'Y')) fileSet = false;
     }
+
     if (!fileSet) {
-        reset();
-        printf("Save to: ");
         char saveLocation[200];
-        scanf("%s", &saveLocation);
+        getInput("Save to: ", saveLocation, sizeof(saveLocation));
         printf("\nSaving to %s\n", saveLocation);
         fileSet = true;
-        if (fileName == NULL) fileName = malloc(sizeof(char) * strlen(saveLocation));
-        else fileName = realloc(fileName, sizeof(char) * strlen(saveLocation));
+        if (fileName == NULL) fileName = malloc(strlen(saveLocation) + 1);
+        else fileName = realloc(fileName, strlen(saveLocation) + 1);
         strcpy(fileName, saveLocation);
     }
+
     FILE *fptr = fopen(fileName, "r");
     if (fptr != NULL) {
-        reset();
-        printf("File exists. Overwrite y/N? ");
-        char resp;
-        scanf(" %c", &resp);
-        if (!(resp == 'y' || resp == 'Y')) return;
         fclose(fptr);
+        char resp[4] = "";
+        getInput("File exists. Overwrite y/N: ", resp, sizeof(resp));
+        if (!(resp[0] == 'y' || resp[0] == 'Y')) return;
     }
+
     fptr = fopen(fileName, "w");
-    if (length > 0) fprintf(fptr, text);
+    if (!fptr) {
+        setStatusText("Error opening file");
+        return;
+    }
+
+    if (length > 0) fprintf(fptr, "%s", text);
     fclose(fptr);
     setStatusText("File saved");
 }
 
+
+
 void findText() {
-    reset();
-    int count = 0;
-    printf("Find: ");
-    char find[200];
-    scanf("%s", &find);
+    char findText[256];
+    getInput("Find: ", findText, sizeof(findText));
     int index = getTextIndex();
-    char *subst = malloc(sizeof(char) * (length - index));
+    char* subst = malloc(length - index + 1);
     strncpy(subst, text + index, length - index);
     subst[length - index] = '\0';
-    char *result = strstr(subst, find);
-    if (!result) { setStatusText("Not found"); return; }
-    int position = result - subst + index;
-    count++;
-    char status[50];
-    sprintf(status, "Found %d", count);
-    setStatusText(status);
-    goToIndex(position);
-    cursorX += strlen(find);
+    char* result = strstr(subst, findText);
+    if(result == NULL){
+        setStatusText("Not found");
+    } else {
+        int position = result - subst + index;
+        setStatusText("Found");
+        goToIndex(position);
+        cursorX += strlen(findText);
+    }
+    free(subst);
 }
 
 void handleKeyC(char c) {
