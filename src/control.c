@@ -14,85 +14,106 @@ void setStatusText(const char* input){
 }
 
 void renderC() {
-    cls();
-
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
     GetConsoleScreenBufferInfo(hOut, &sbInfo);
     int columns = sbInfo.dwSize.X;
     int rows = sbInfo.dwSize.Y;
     int textRows = rows - 1; 
-    if (cursorY < scrollY) scrollY = cursorY;
-    if (cursorY >= scrollY + textRows) scrollY = cursorY - textRows + 1;
-    if (cursorX < scrollX) scrollX = cursorX;
-    if (cursorX >= scrollX + columns) scrollX = cursorX - columns + 1;
 
-    int currentLine = 0;
+    int followIndex = (selEnd != -1) ? selEnd : getTextIndex();
+    int fx = 0, fy = 0;
+    for (int i = 0; i < followIndex && i < length; i++) {
+        if (text[i] == '\n') { fy++; fx = 0; }
+        else fx++;
+    }
+
+    if (fy < scrollY) scrollY = fy;
+    if (fy >= scrollY + textRows) scrollY = fy - textRows + 1;
+    if (fx < scrollX) scrollX = fx;
+    if (fx >= scrollX + columns) scrollX = fx - columns + 1;
+
+    char *screenBuf = malloc(columns * rows);
+    WORD *attrBuf = malloc(columns * rows * sizeof(WORD));
+    if (!screenBuf || !attrBuf) return;
+
+    for (int i = 0; i < columns * rows; i++) {
+        screenBuf[i] = ' ';
+        attrBuf[i] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    }
+
     int charIndex = 0;
+    int currentLine = 0;
     while (currentLine < scrollY && charIndex < length) {
         if (text[charIndex] == '\n') currentLine++;
         charIndex++;
     }
 
-
     for (int y = 0; y < textRows; y++) {
         if (charIndex >= length) break;
-
-        COORD linePos = {0, y};
-        SetConsoleCursorPosition(hOut, linePos);
-
         int lineStartIndex = charIndex;
         int lineLength = 0;
-        while (lineStartIndex + lineLength < length && text[lineStartIndex + lineLength] != '\n') {
-            lineLength++;
-        }
+        while (lineStartIndex + lineLength < length && text[lineStartIndex + lineLength] != '\n') lineLength++;
 
         int renderStartIndex = lineStartIndex + scrollX;
         int renderEndIndex = lineStartIndex + lineLength;
-        if (renderStartIndex < renderEndIndex) {
-            int charsToRender = renderEndIndex - renderStartIndex;
-            if (charsToRender > columns) charsToRender = columns;
+        int charsToRender = renderEndIndex - renderStartIndex;
+        if (charsToRender > columns) charsToRender = columns;
 
-            for (int i = 0; i < charsToRender; i++) {
-                int idx = renderStartIndex + i;
+        for (int i = 0; i < charsToRender; i++) {
+            int idx = renderStartIndex + i;
+            int pos = y * columns + i;
 
-           
-                if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
-                    SetConsoleTextAttribute(hOut, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                } else {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                }
-
-                putchar(text[idx]);
+            if (selStart != -1 && selEnd != -1) {
+                int start = selStart < selEnd ? selStart : selEnd;
+                int end   = selStart > selEnd ? selStart : selEnd;
+                if (idx >= start && idx < end) attrBuf[pos] = BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                else attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+            } else {
+                attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
             }
+
+            screenBuf[pos] = text[idx];
         }
 
         charIndex = lineStartIndex + lineLength;
         if (charIndex < length && text[charIndex] == '\n') charIndex++;
     }
-    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-    COORD statusBarPos = {0, rows - 1};
-    SetConsoleCursorPosition(hOut, statusBarPos);
-
-    for (int i = 0; i < columns; i++) printf(" ");
-    SetConsoleCursorPosition(hOut, statusBarPos);
-
-    const char* prefix = "notec | v1.0 | ";
-    printf("%s", prefix);
-
-    if (statusLength > 0) {
-        printf("%s", statusText);
+    for (int x = 0; x < columns; x++) {
+        int p = (rows - 1) * columns + x;
+        screenBuf[p] = ' ';
+        attrBuf[p] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
 
+    const char* prefix = "notec | v1.0 | ";
+    int prefixLen = strlen(prefix);
+    for (int i = 0; i < prefixLen && i < columns; i++) {
+        int p = (rows - 1) * columns + i;
+        screenBuf[p] = prefix[i];
+    }
+    for (int i = 0; i < statusLength && i + prefixLen < columns; i++) {
+        int p = (rows - 1) * columns + prefixLen + i;
+        screenBuf[p] = statusText[i];
+    }
 
-    COORD pos = {columns, rows - 1};
+    DWORD written;
+    WriteConsoleOutputCharacter(hOut, screenBuf, columns * rows, (COORD){0,0}, &written);
+    WriteConsoleOutputAttribute(hOut, attrBuf, columns * rows, (COORD){0,0}, &written);
+
+    int cx = 0, cy = 0;
+    int finalIndex = (selEnd != -1) ? selEnd : getTextIndex();
+    for (int i = 0; i < finalIndex && i < length; i++) {
+        if (text[i] == '\n') { cy++; cx = 0; } else cx++;
+    }
+    COORD pos = { cx - scrollX, cy - scrollY };
     SetConsoleCursorPosition(hOut, pos);
 
-
-    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    free(screenBuf);
+    free(attrBuf);
 }
+
+
 
 void reset(){
     setStatusText(" ");
@@ -102,11 +123,9 @@ void reset(){
 
 
 void moveSelectionUpLine() {
-    if (selStart == -1 || selEnd == -1) return;
-
-
+    if (selStart == -1) return; 
     int x = 0, y = 0;
-    for (int i = 0; i < selStart && i < length; i++) {
+    for (int i = 0; i < selEnd && i < length; i++) {
         if (text[i] == '\n') {
             y++;
             x = 0;
@@ -116,10 +135,7 @@ void moveSelectionUpLine() {
     }
 
     if (y == 0) return; 
-
-
-    y--;
-
+    y--; 
 
     int newIndex = 0;
     int cx = 0, cy = 0;
@@ -128,21 +144,18 @@ void moveSelectionUpLine() {
         newIndex++;
     }
 
-
     while (newIndex < length && text[newIndex] != '\n' && cx < x) {
         cx++;
         newIndex++;
     }
 
-    selStart = newIndex;
+    selEnd = newIndex; 
 }
 
 void moveSelectionDownLine() {
-    if (selStart == -1 || selEnd == -1) return;
-
-
+    if (selStart == -1) return;  
     int x = 0, y = 0;
-    for (int i = 0; i < selStart && i < length; i++) {
+    for (int i = 0; i < selEnd && i < length; i++) {
         if (text[i] == '\n') {
             y++;
             x = 0;
@@ -151,9 +164,8 @@ void moveSelectionDownLine() {
         }
     }
 
-    if (y >= getMaxLine() - 1) return;
-
-    y++;
+    if (y >= getMaxLine() - 1) return; 
+    y++; 
 
     int newIndex = 0;
     int cx = 0, cy = 0;
@@ -161,13 +173,11 @@ void moveSelectionDownLine() {
         if (text[newIndex] == '\n') cy++;
         newIndex++;
     }
-
     while (newIndex < length && text[newIndex] != '\n' && cx < x) {
         cx++;
         newIndex++;
     }
-
-    selStart = newIndex;
+    selEnd = newIndex; 
 }
 
 void handleKeyC(char c) {
@@ -177,11 +187,15 @@ void handleKeyC(char c) {
         exit(0);
     }
     if((int)c==72){
+        if(selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionUpLine();
+        setStatusText("Selected");
         return;
     }
     if((int)c==80){
+        if(selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionDownLine();
+        setStatusText("Selected");
         return;
     }
     if((int)c==77){
