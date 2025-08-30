@@ -133,7 +133,7 @@ void handleKeyW(char c){
     if((int)c==-32){
         return;
     }
-    if ((int)c == 8) {
+    if ((int)c == 8&&!readOnly) {
          // BACKSPACE
         if (selStart != -1 && selEnd != -1 && selStart != selEnd) {
     
@@ -230,6 +230,10 @@ void handleKeyW(char c){
         return;
     }
 
+    if(readOnly){
+        return;
+    }
+
     if((int)c==9){
         //TAB
         for(int i=0;i<4;i++){
@@ -315,9 +319,14 @@ void renderW() {
 
     COORD statusBarPos = {0, rows - 1};
     SetConsoleCursorPosition(hOut, statusBarPos);
-    char statusBar[128];
+    char statusBar[200];
     float size = (float)length / 1024.0f;
     snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(), size);
+
+    if(readOnly){
+        strcat(statusBar," | Readonly");
+    }
+
     printf("%-*s", columns, statusBar); 
     COORD pos = {cursorX - scrollX, cursorY - scrollY};
     SetConsoleCursorPosition(hOut, pos);

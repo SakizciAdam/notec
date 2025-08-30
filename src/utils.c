@@ -1,5 +1,6 @@
 #include "utils.h"
 
+bool readOnly=false;
 
 void cls()
 {

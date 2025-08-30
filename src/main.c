@@ -39,9 +39,33 @@ int main(int argc, char **argv) {
             }
             fclose(file);
         }
+
+        int len=argc;
+        for(int i=2;i<len;i++){
+            char* arg=argv[i];
+            int argLen=strlen(arg)-1;
+            char *option=malloc(sizeof(char)*(argLen+1));
+
+            for(int j=0;j<strlen(arg);j++){
+                char b=arg[j];
+
+                if(j==0&&b!='-'){
+                    printf("Unknown argument %s\n",arg);
+                    return 1;
+                }
+                option[j]=b;
+                
+            }
+
+            if(strcmp(option,"-r")){
+                readOnly=true;
+            }
+            
+            free(option);
+        }
     }
     
-   
+
 
     renderW();
     while(true){
