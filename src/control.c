@@ -224,7 +224,10 @@ void handleKeyC(char c) {
             setStatusText("Unselected");
         }
     }
-    
+    if(lower=='p'){
+        selStart=-1;
+        selEnd=selStart;
+    }
     if(lower=='a'){
         selStart=0;
         selEnd=length;
