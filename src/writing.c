@@ -130,6 +130,61 @@ void initW(){
   
 }
 
+void moveCursorUp(){
+    if(cursorY+1==getMaxLine()){
+        cursorX=getLineLength(cursorY);
+        return;
+    }
+    cursorY++;
+    if(cursorX>getLineLength(cursorY)){
+        cursorX=getLineLength(cursorY);
+    }
+    arrow=false;
+}
+
+void moveCursorDown(){
+    if(cursorY>0){
+        int previousLineLength=getLineLength(cursorY-1);
+
+        if(cursorX<=previousLineLength){
+            cursorY--;
+        } else {
+            cursorX=previousLineLength;
+            cursorY--;
+        }
+    }
+    arrow=false;
+}
+
+void moveCursorRight(){
+    if(cursorX==getLineLength(cursorY)){
+        if(cursorY+1>=getMaxLine()){
+            return;
+        }
+        cursorY++;
+            
+        cursorX=0;
+        return;
+    }
+    cursorX++;
+    arrow=false;
+}
+
+void moveCursorLeft(){
+    cursorX--;
+    if(cursorX<0){
+        if(cursorY>0){
+            cursorY--;
+            cursorX=getLineLength(cursorY);
+        } else {
+            cursorX=0;
+        }
+            
+    }
+      
+    arrow=false;
+}
+
 void handleKeyW(char c){
     if((int)c==-9999){
         return;
@@ -180,61 +235,22 @@ void handleKeyW(char c){
     }
     
     else if((int)c==72&&arrow){
-        if(cursorY>0){
-            int previousLineLength=getLineLength(cursorY-1);
-
-            if(cursorX<=previousLineLength){
-                cursorY--;
-            } else {
-                cursorX=previousLineLength;
-                cursorY--;
-            }
-        }
-        arrow=false;
+        moveCursorDown();
         
         return;
     }
     else if((int)c==80&&arrow){
-        if(cursorY+1==getMaxLine()){
-            cursorX=getLineLength(cursorY);
-            return;
-        }
-        cursorY++;
-        if(cursorX>getLineLength(cursorY)){
-            cursorX=getLineLength(cursorY);
-        }
-        arrow=false;
+        moveCursorUp();
         return;
     }
     else if((int)c==75&&arrow){
         //LEFT
-        cursorX--;
-        if(cursorX<0){
-            if(cursorY>0){
-                cursorY--;
-                cursorX=getLineLength(cursorY);
-            } else {
-                cursorX=0;
-            }
-            
-        }
-      
-        arrow=false;
+        moveCursorLeft();
         return;
     }
     else if((int)c==77&&arrow){
         //RIGHT
-        if(cursorX==getLineLength(cursorY)){
-            if(cursorY+1>=getMaxLine()){
-                return;
-            }
-            cursorY++;
-            
-            cursorX=0;
-            return;
-        }
-        cursorX++;
-        arrow=false;
+        moveCursorRight();
         return;
     }
 

@@ -27,4 +27,12 @@ int getTextIndex();
 
 void goToIndex(int index);
 
+void moveCursorLeft();
+
+void moveCursorRight();
+
+void moveCursorUp();
+
+void moveCursorDown();
+
 #endif // WRITING_H

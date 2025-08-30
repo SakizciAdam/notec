@@ -180,238 +180,185 @@ void moveSelectionDownLine() {
     selEnd = newIndex; 
 }
 
-void handleKeyC(char c) {
-    char lower=tolower(c);
-    arrow=false;
-    if(lower=='q'){
-        exit(0);
-    }
-    if((int)c==72){
-        if(selStart == -1) selStart = selEnd = getTextIndex();
+
+
+bool selectionMode = false;
+
+void toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    if (!selectionMode) selStart = selEnd = -1;
+    setStatusText(selectionMode ? "Selection mode" : "");
+}
+
+void moveCursorOrSelectionUp() {
+    if (selectionMode) {
+        if (selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionUpLine();
         setStatusText("Selected");
-        return;
-    }
-    if((int)c==80){
-        if(selStart == -1) selStart = selEnd = getTextIndex();
+    } else moveCursorDown();
+}
+
+void moveCursorOrSelectionDown() {
+    if (selectionMode) {
+        if (selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionDownLine();
         setStatusText("Selected");
+    } else moveCursorUp();
+}
+
+void moveCursorOrSelectionLeft() {
+    if (selectionMode) {
+        if (selStart == -1 && selEnd == -1) selStart = getTextIndex() - 1, selEnd = selStart + 2;
+        selEnd--;
+        if (selEnd == selStart) selStart = selEnd = -1, setStatusText("Unselected");
+        else setStatusText("Selected");
+    } else moveCursorLeft();
+}
+
+void moveCursorOrSelectionRight() {
+    if (selectionMode) {
+        if (selStart == -1 && selEnd == -1) selStart = selEnd = getTextIndex();
+        selEnd++;
+        if (selEnd >= length - 1) selEnd = length - 1;
+        setStatusText("Selected");
+    } else moveCursorRight();
+}
+
+void clearSelection() {
+    selStart = selEnd = -1;
+    setStatusText("Unselected");
+}
+
+void selectAll() {
+    selStart = 0;
+    selEnd = length;
+}
+
+void copySelection() {
+    if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
+    setStatusText("Error");
+    int start = selStart < selEnd ? selStart : selEnd;
+    int end = selStart > selEnd ? selStart : selEnd;
+    int lengthToCopy = end - start;
+    if (lengthToCopy <= 0) return;
+    if (!OpenClipboard(NULL)) return;
+    EmptyClipboard();
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, lengthToCopy + 1);
+    if (!hMem) { CloseClipboard(); return; }
+    memcpy(GlobalLock(hMem), text + start, lengthToCopy);
+    GlobalUnlock(hMem);
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+    setStatusText("Copied");
+}
+
+void pasteClipboard() {
+    if (!OpenClipboard(NULL)) { setStatusText("Error"); return; }
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+    if (!hData) { setStatusText("No text in clipboard"); return; }
+    wchar_t *wText = (wchar_t *)GlobalLock(hData);
+    if (!wText) { setStatusText("Error"); CloseClipboard(); return; }
+    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wText, -1, NULL, 0, NULL, NULL);
+    char *buffer = malloc(sizeNeeded);
+    if (buffer) {
+        setStatusText("Pasted");
+        int oldIndex = getTextIndex();
+        WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
+        for (int i = 0; i < strlen(buffer); i++) {
+            char ch = buffer[i];
+            if ((int)ch == 13) {}
+            else if ((int)ch == 9) handleKeyW('#');
+            else if (isascii(ch)) handleKeyW(ch);
+        }
+        goToIndex(oldIndex);
+    }
+    GlobalUnlock(hData);
+    CloseClipboard();
+}
+
+void goToLine() {
+    reset();
+    printf("Go to: ");
+    int lineNumber;
+    scanf("%d", &lineNumber);
+    if (lineNumber > getMaxLine() || lineNumber <= 0) {
+        setStatusText("Line does not exist");
         return;
     }
-    if((int)c==77){
-        //RIGHT
-        if(selStart==-1&&selEnd==-1){
-            selStart=getTextIndex();
-            selEnd=selStart;
-        }
-        selEnd++;
-        if(selEnd>=length-1){
-            selEnd=length-1;
-        }
-        setStatusText("Selected");
+    cursorY = lineNumber - 1;
+    cursorX = 0;
+}
+
+void saveFile() {
+    reset();
+    if (fileSet) {
+        printf("Save to %s? y/N", fileName);
+        char resp;
+        scanf(" %c", &resp);
+        if (!(resp == 'y' || resp == 'Y')) fileSet = false;
     }
-    if((int)c==75){
-        //LEFT
-        if(selStart==-1&&selEnd==-1){
-            selStart=getTextIndex()-1;
-            selEnd=selStart+2;
-        }
-        selEnd--;
-       
-        setStatusText("Selected");
-        if(selEnd==selStart){
-            selEnd=selStart=-1;
-            setStatusText("Unselected");
-        }
-    }
-    if(lower=='p'){
-        selStart=-1;
-        selEnd=selStart;
-    }
-    if(lower=='a'){
-        selStart=0;
-        selEnd=length;
-    }
-    if(lower=='c'){
-        if (selStart == -1 || selEnd == -1 || selStart == selEnd) {
-            return; 
-        }
-        setStatusText("Error");
-        int start = selStart < selEnd ? selStart : selEnd;
-        int end = selStart > selEnd ? selStart : selEnd;
-        int lengthToCopy = end - start;
-
-        if (lengthToCopy <= 0) return;
-
-  
-        if (!OpenClipboard(NULL)) return;
-
-  
-        EmptyClipboard();
-
-
-        HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, lengthToCopy + 1);
-        if (!hMem) {
-            CloseClipboard();
-            
-            return;
-        }
-
-
-        memcpy(GlobalLock(hMem), text + start, lengthToCopy);
-        GlobalUnlock(hMem);
-
-
-        SetClipboardData(CF_TEXT, hMem);
-
-        CloseClipboard();
-        setStatusText("Copied");
-    }
-    if(lower=='v'){
-        if (!OpenClipboard(NULL)) {
-            setStatusText("Error");
-
-            return;
-        }
-
-        HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-        if (hData == NULL) {
-            setStatusText("No text in clipboard");
-
-            return;
-        }
-
-        wchar_t *wText  = (wchar_t *)GlobalLock(hData);
-        if (wText  == NULL) {
-            setStatusText("Error");
-            CloseClipboard();
-            return;
-        }
-        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wText, -1, NULL, 0, NULL, NULL);
-        char *buffer = malloc(sizeNeeded);
-        if (buffer) {
-            setStatusText("Pasted");
-            int oldIndex=getTextIndex();
-            WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
-            for(int i=0;i<strlen(buffer);i++){
-                char ch=buffer[i];
-         
-                if((int)ch==13){
-                    //handleKeyW('x');
-                }
-                else if((int)ch==9){
-                    handleKeyW('#');
-                }
-                else if(isascii(ch)){
-                    handleKeyW(ch);
-                    
-                }
-            }
-            goToIndex(oldIndex);
-            //free(buffer);
-        }
-
-   
-        GlobalUnlock(hData);
-        CloseClipboard();
-    }
-
-    if(lower=='g'){
+    if (!fileSet) {
         reset();
-        printf("Go to: ");
-        int lineNumber;
-        scanf("%d",&lineNumber);
-
-        if(lineNumber>getMaxLine()||lineNumber<=0){
-            setStatusText("Line does not exist");
-            return;
-        }
-        cursorY=lineNumber-1;
-        cursorX=0;
+        printf("Save to: ");
+        char saveLocation[200];
+        scanf("%s", &saveLocation);
+        printf("\nSaving to %s\n", saveLocation);
+        fileSet = true;
+        if (fileName == NULL) fileName = malloc(sizeof(char) * strlen(saveLocation));
+        else fileName = realloc(fileName, sizeof(char) * strlen(saveLocation));
+        strcpy(fileName, saveLocation);
     }
-    if(lower=='w'){
+    FILE *fptr = fopen(fileName, "r");
+    if (fptr != NULL) {
         reset();
-
-        if(fileSet){
-            printf("Save to %s? y/N",fileName);
-
-            char resp;
-            scanf(" %c",&resp);
-
-            if(resp=='y'||resp=='Y'){
-          
-
-            } else {
-                fileSet=false;
-            }
-        }
-
-        if(!fileSet){
-            reset();
-            printf("Save to: ");
-            char saveLocation[200];
-            scanf("%s",&saveLocation);
-            printf("\nSaving to %s\n",saveLocation);
-            fileSet=true;
-            if(fileName==NULL){
-                fileName=malloc(sizeof(char)*strlen(saveLocation));
-            } else {
-                fileName=realloc(fileName,sizeof(char)*strlen(saveLocation));
-            }
-            strcpy(fileName,saveLocation);
-        }
-        FILE *fptr;
-
-        fptr = fopen(fileName, "r");
-        if(fptr!=NULL){
-            reset();
-            printf("File exists. Overwrite y/N? ");
-            char resp;
-            scanf(" %c",&resp);
-
-            if(resp!='y'&&resp!='Y'){
-                return;
-            }
-            fclose(fptr);
-        } 
-
-        fptr = fopen(fileName, "w");
-        if(length>0){
-            fprintf(fptr, text);
-        }
+        printf("File exists. Overwrite y/N? ");
+        char resp;
+        scanf(" %c", &resp);
+        if (!(resp == 'y' || resp == 'Y')) return;
         fclose(fptr);
-        
-        setStatusText("File saved");
     }
+    fptr = fopen(fileName, "w");
+    if (length > 0) fprintf(fptr, text);
+    fclose(fptr);
+    setStatusText("File saved");
+}
 
-    if(lower=='f'){
-        reset();
-   
-        int count=0;
-        printf("Find: ");
-        char find[200];
-        scanf("%s",&find);
-        int index=getTextIndex();
-        char* subst=malloc(sizeof(char)*(length-index));
+void findText() {
+    reset();
+    int count = 0;
+    printf("Find: ");
+    char find[200];
+    scanf("%s", &find);
+    int index = getTextIndex();
+    char *subst = malloc(sizeof(char) * (length - index));
+    strncpy(subst, text + index, length - index);
+    subst[length - index] = '\0';
+    char *result = strstr(subst, find);
+    if (!result) { setStatusText("Not found"); return; }
+    int position = result - subst + index;
+    count++;
+    char status[50];
+    sprintf(status, "Found %d", count);
+    setStatusText(status);
+    goToIndex(position);
+    cursorX += strlen(find);
+}
 
-        
-        strncpy(subst, text + index, length-index);
+void handleKeyC(char c) {
+    char lower = tolower(c);
+    arrow = false;
 
-        subst[length-index] = '\0';
-
-        char *result = strstr(subst, find);
-
-        if(result==NULL){
-            setStatusText("Not found");
-            return;
-        }
-
-        int position = result - subst + index;
-        count++;
-        char status[50];
-        sprintf(status,"Found %d",count);
-        setStatusText(status);
-        goToIndex(position);
-        cursorX+=strlen(find);
-    }
+    if (lower == 'q') exit(0);
+    if (lower == 's') toggleSelectionMode();
+    else if ((int)c == 72) moveCursorOrSelectionUp();
+    else if ((int)c == 80) moveCursorOrSelectionDown();
+    else if ((int)c == 77) moveCursorOrSelectionRight();
+    else if ((int)c == 75) moveCursorOrSelectionLeft();
+    else if (lower == 'p') clearSelection();
+    else if (lower == 'a') selectAll();
+    else if (lower == 'c') copySelection();
+    else if (lower == 'v') pasteClipboard();
+    else if (lower == 'g') goToLine();
+    else if (lower == 'w') saveFile();
+    else if (lower == 'f') findText();
 }
