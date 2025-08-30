@@ -365,6 +365,7 @@ void handleKeyC(char c) {
         
         setStatusText("File saved");
     }
+
     if(c=='f'){
         reset();
    

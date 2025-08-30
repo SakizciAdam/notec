@@ -26,7 +26,11 @@ f -> find
 
 c -> copy
 
-c -> paste
+v -> paste
+
+a -> select all
+
+arrows to select
 
 ## TODO
 
