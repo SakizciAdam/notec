@@ -35,11 +35,19 @@ int main(int argc, char **argv) {
             if (new_text) {
                 fread(new_text, 1, len, file);
                 new_text[len] = '\0';
+                int j = 0;
+                for (int i = 0; i < len; i++) {
+                    if (new_text[i] == '\r' && i + 1 < len && new_text[i + 1] == '\n') {
+                        continue; 
+                    }
+                    new_text[j++] = new_text[i];
+                }
+                new_text[j] = '\0';
+                len = j;
 
-                free(text); 
-                text = new_text; 
+                free(text);
+                text = new_text;
                 length = len;
-
             }
             fclose(file);
         }
