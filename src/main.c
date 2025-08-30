@@ -108,6 +108,5 @@ int main(int argc, char **argv) {
           
         }
     }
-    free(fileName);
     return 0;
 }

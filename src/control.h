@@ -3,6 +3,8 @@
 
 #include "writing.h"
 
+extern char* statusText;
+
 void initC();
 void handleKeyC(char c);
 void renderC();

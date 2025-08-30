@@ -99,7 +99,7 @@ void reset(){
     renderC();
 
 }
-char* backupText;
+
 
 void moveSelectionUpLine() {
     if (selStart == -1 || selEnd == -1) return;
@@ -172,8 +172,6 @@ void moveSelectionDownLine() {
 
 void handleKeyC(char c) {
     if(c=='q'){
-        free(text);
-        free(statusText);
         exit(0);
     }
     if((int)c==72){
