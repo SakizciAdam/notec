@@ -28,9 +28,12 @@ c -> copy
 
 v -> paste
 
+s -> selection toggle
+
 a -> select all
 
-arrows to select
+p -> unselect all
+
 
 ## TODO
 
