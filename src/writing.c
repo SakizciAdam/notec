@@ -185,18 +185,16 @@ void moveCursorLeft(){
     arrow=false;
 }
 
-void handleKeyW(char c){
-    if((int)c==-9999){
-        return;
-    }
-    if((int)c==-32){
-        arrow=true;
-        return;
-    }
-    if ((int)c == 8&&!readOnly) {
-         // BACKSPACE
+void handleKeyW(char c) {
+    if ((int)c == -9999) return;
+    if ((int)c == -32) { arrow = true; return; }
+
+    if (readOnly) return;
+
+    int idx = getTextIndex();
+
+    if ((int)c == 8) {
         if (selStart != -1 && selEnd != -1 && selStart != selEnd) {
-    
             int start = selStart < selEnd ? selStart : selEnd;
             int end = selStart > selEnd ? selStart : selEnd;
             int delLength = end - start;
@@ -210,75 +208,54 @@ void handleKeyW(char c){
 
             goToIndex(start);
 
-            selStart = -1;
-            selEnd = -1;
-        } else {
+            selStart = selEnd = -1;
+        } else if (idx > 0 && length > 0) {
+            for (int i = idx - 1; i < length - 1; i++) {
+                text[i] = text[i + 1];
+            }
+            length--;
+            text = realloc(text, length + 1);
+            if (text) text[length] = '\0';
 
-            int idx = getTextIndex();
-            if (idx > 0 && length > 0) {
-                for (int i = idx - 1; i < length - 1; i++) {
-                    text[i] = text[i + 1];
-                }
-                length--;
-                text = realloc(text, length + 1);
-                if (text) text[length] = '\0';
-
-                if (cursorX > 0) {
-                    cursorX--;
-                } else if (cursorY > 0) {
-                    cursorY--;
-                    cursorX = getLineLength(cursorY);
-                }
+            if (cursorX > 0) cursorX--;
+            else if (cursorY > 0) {
+                cursorY--;
+                cursorX = getLineLength(cursorY);
             }
         }
         return;
     }
-    
-    else if((int)c==72&&arrow){
-        moveCursorDown();
-        
-        return;
-    }
-    else if((int)c==80&&arrow){
-        moveCursorUp();
-        return;
-    }
-    else if((int)c==75&&arrow){
-        //LEFT
-        moveCursorLeft();
-        return;
-    }
-    else if((int)c==77&&arrow){
-        //RIGHT
-        moveCursorRight();
-        return;
-    }
 
-    if(readOnly){
-        return;
-    }
-
-    if((int)c==9){
-        //TAB
-        for(int i=0;i<4;i++){
-            addCharAt(' ',getTextIndex());
-            cursorX++;
+    if (arrow) {
+        switch ((int)c) {
+            case 72: moveCursorDown(); return;
+            case 80: moveCursorUp(); return;
+            case 75: moveCursorLeft(); return;
+            case 77: moveCursorRight(); return;
         }
+    }
 
-        return;
+    switch ((int)c) {
+        case 9: 
+            for (int i = 0; i < 4; i++) {
+                addCharAt(' ', idx++);
+                cursorX++;
+            }
+            break;
+        case 13:
+            addCharAt('\n', idx);
+            cursorY++;
+            cursorX = 0;
+            break;
+        default:
+            if (isascii(c)) {
+                addCharAt(c, idx);
+                cursorX++;
+            }
+            break;
     }
-    if((int)c==13){
-        addCharAt('\n',getTextIndex());
-        cursorY++;
-        cursorX=0;
-        return;
-    }
-    if(isascii(c)){
-        addCharAt(c,getTextIndex());
-        cursorX++;
-    }
-    
 }
+
 
 
 void renderW() {
