@@ -1,39 +1,21 @@
 # notec
 
-notec is a nano/vim clone for windows
-im too lazy to port it to linux
+Notec is a lightweight, console-based text editor for Windows.
 
-## Build
+## Features
+- Simple and fast text editing
+- Syntax highlighting 
+- ~100kB size
+- No bloat
+
+## Installation
 
 ```bash
+git clone https://github.com/SakizciAdam/notec.git
+cd notec
 make
+./build/notec.exe <pathtofile> [-r/-v]
 ```
-
-## Usage
-
-```bash
-notec [file name]
-```
-Press ESC to change between writing and CTRL mode.
-
-While in CTRL mode:
-
-q -> to quit without saving
-
-w -> save
-
-f -> find
-
-c -> copy
-
-v -> paste
-
-s -> selection toggle
-
-a -> select all
-
-p -> unselect all
-
 
 ## TODO
 
@@ -43,7 +25,9 @@ p -> unselect all
    
 3. ~~Select text~~ 
 
-4. Configuration
+4. Undo/redo
+
+5. Configuration
 
 ## Contributing
 
