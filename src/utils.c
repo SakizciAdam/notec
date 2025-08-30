@@ -5,37 +5,19 @@ char* fileName;
 bool fileSet=false;
 
 
-void cls()
-{
- 
-    HANDLE hConsole;
-
-    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+void cls() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    SMALL_RECT scrollRect;
-    COORD scrollTarget;
-    CHAR_INFO fill;
+    DWORD written;
 
-    if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
-    {
-        return;
-    }
+    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
 
-    scrollRect.Left = 0;
-    scrollRect.Top = 0;
-    scrollRect.Right = csbi.dwSize.X;
-    scrollRect.Bottom = csbi.dwSize.Y;
+    // Fill the entire buffer with spaces
+    FillConsoleOutputCharacter(hConsole, ' ', csbi.dwSize.X * csbi.dwSize.Y, (COORD){0,0}, &written);
 
-    scrollTarget.X = 0;
-    scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
+    // Reset all attributes
+    FillConsoleOutputAttribute(hConsole, csbi.wAttributes, csbi.dwSize.X * csbi.dwSize.Y, (COORD){0,0}, &written);
 
-    fill.Char.UnicodeChar = TEXT(' ');
-    fill.Attributes = csbi.wAttributes;
-
-    ScrollConsoleScreenBuffer(hConsole, &scrollRect, NULL, scrollTarget, &fill);
-
-    csbi.dwCursorPosition.X = 0;
-    csbi.dwCursorPosition.Y = 0;
-
-    SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
+    // Move cursor back to top-left
+    SetConsoleCursorPosition(hConsole, (COORD){0,0});
 }
