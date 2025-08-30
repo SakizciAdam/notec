@@ -327,6 +327,14 @@ void renderW() {
         strcat(statusBar," | Readonly");
     }
 
+    if(fileSet){
+        char *t = (char*)malloc(50 * sizeof(char));
+
+        sprintf(t, " | %s", fileName);
+        strcat(statusBar,t);
+        free(t);
+    }
+
     printf("%-*s", columns, statusBar); 
     COORD pos = {cursorX - scrollX, cursorY - scrollY};
     SetConsoleCursorPosition(hOut, pos);

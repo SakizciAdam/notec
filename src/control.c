@@ -210,6 +210,10 @@ void handleKeyC(char c) {
             setStatusText("Unselected");
         }
     }
+    if(c=='a'){
+        selStart=0;
+        selEnd=length;
+    }
     if(c=='c'){
         if (selStart == -1 || selEnd == -1 || selStart == selEnd) {
             return; 
@@ -309,16 +313,41 @@ void handleKeyC(char c) {
     }
     if(c=='w'){
         reset();
-        printf("Save to: ");
-        char saveLocation[200];
-        scanf("%s",&saveLocation);
-        printf("\nSaving to %s\n",saveLocation);
+
+        if(fileSet){
+            printf("Save to %s? y/N",fileName);
+
+            char resp;
+            scanf(" %c",&resp);
+
+            if(resp=='y'||resp=='Y'){
+          
+
+            } else {
+                fileSet=false;
+            }
+        }
+
+        if(!fileSet){
+            reset();
+            printf("Save to: ");
+            char saveLocation[200];
+            scanf("%s",&saveLocation);
+            printf("\nSaving to %s\n",saveLocation);
+            fileSet=true;
+            if(fileName==NULL){
+                fileName=malloc(sizeof(char)*strlen(saveLocation));
+            } else {
+                fileName=realloc(fileName,sizeof(char)*strlen(saveLocation));
+            }
+            strcpy(fileName,saveLocation);
+        }
         FILE *fptr;
 
-        fptr = fopen(saveLocation, "r");
+        fptr = fopen(fileName, "r");
         if(fptr!=NULL){
-            cls();
-            printf("File exists. Overwrite y/N");
+            reset();
+            printf("File exists. Overwrite y/N? ");
             char resp;
             scanf(" %c",&resp);
 
@@ -328,7 +357,7 @@ void handleKeyC(char c) {
             fclose(fptr);
         } 
 
-        fptr = fopen(saveLocation, "w");
+        fptr = fopen(fileName, "w");
         if(length>0){
             fprintf(fptr, text);
         }

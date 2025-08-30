@@ -1,6 +1,9 @@
 #include "utils.h"
 
 bool readOnly=false;
+char* fileName;
+bool fileSet=false;
+
 
 void cls()
 {

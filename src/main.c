@@ -7,10 +7,14 @@ int main(int argc, char **argv) {
     int mode=WRITING_MODE;
     initW();
     initC();
+    fileName=malloc(sizeof(char));
     if(argc>=2){
 
      
         FILE *file = fopen(argv[1], "rb"); 
+        fileName=realloc(fileName,sizeof(char)*(strlen(argv[1])+1));
+        fileSet=true;
+        strcpy(fileName,argv[1]);
         if (file) {
             fseek(file, 0, SEEK_END);
             long len = ftell(file);
@@ -96,6 +100,6 @@ int main(int argc, char **argv) {
           
         }
     }
-
+    free(fileName);
     return 0;
 }

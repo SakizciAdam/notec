@@ -10,7 +10,9 @@ void cls();
 
 extern bool readOnly;
 
+extern char* fileName;
 
+extern bool fileSet;
 
 
 #endif // UTILS_H
