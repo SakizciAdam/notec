@@ -7,77 +7,72 @@ int main(int argc, char **argv) {
     int mode=WRITING_MODE;
     initW();
     initC();
-    fileName=malloc(sizeof(char));
-    if(argc>=2){
+    fileName = NULL;
+    fileSet = false;
 
-     
-        FILE *file = fopen(argv[1], "rb"); 
-        int startingIndex=2;
-        
-        fileName=realloc(fileName,sizeof(char)*(strlen(argv[1])+1));
-        fileSet=true;
-        
-        strcpy(fileName,argv[1]);
-        
-        if (file) {
-            fseek(file, 0, SEEK_END);
-            long len = ftell(file);
-            fseek(file, 0, SEEK_SET);
+    for (int i = 1; i < argc; i++) {
+        char *arg = argv[i];
 
-            if (len >= 3) {
-                unsigned char bom_check[3];
-                fread(bom_check, 1, 3, file);
-                if (bom_check[0] == 0xEF && bom_check[1] == 0xBB && bom_check[2] == 0xBF) {
-                    len -= 3; 
-                } else {
-   
-                    fseek(file, 0, SEEK_SET);
+        if (arg[0] == '-') {
+            for (int j = 1; arg[j]; j++) {
+                switch (arg[j]) {
+                    case 'v':
+                        printf("notec v1.0 - By SakizciAdam\nIf you encounter any issues or have a suggestion, please open a issue in GitHub.\nContributions are always welcome!\nThanks for using notec!");
+                        return 0;
+                    case 'r':
+                        readOnly = true;
+                        break;
+                    default:
+                        printf("Unknown option: -%c\n", arg[j]);
+                        return 1;
                 }
             }
-            
-            char *new_text = malloc(len + 1);
-            if (new_text) {
-                fread(new_text, 1, len, file);
-                new_text[len] = '\0';
-                int j = 0;
-                for (int i = 0; i < len; i++) {
-                    if (new_text[i] == '\r' && i + 1 < len && new_text[i + 1] == '\n') {
-                        continue; 
-                    }
-                    new_text[j++] = new_text[i];
-                }
-                new_text[j] = '\0';
-                len = j;
-
-                free(text);
-                text = new_text;
-                length = len;
-            }
-            fclose(file);
-        }
-
-        int len=argc;
-        for(int i=2;i<len;i++){
-            char* arg=argv[i];
-            int argLen=strlen(arg)-1;
-            char *option=malloc(sizeof(char)*(argLen+1));
-
-            for(int j=0;j<strlen(arg);j++){
-                char b=arg[j];
-
-                if(j==0&&b!='-'){
-                    printf("Unknown argument %s\n",arg);
-                    return 1;
-                }
-                option[j]=b;
+        } else if (!fileSet) {
+            FILE *file = fopen(arg, "rb");
+            if (!file) {
+                fileName = malloc(strlen(arg) + 1);
+                strcpy(fileName, arg);
+                fileSet = true;
+            } else {
                 
+                fileName = malloc(strlen(arg) + 1);
+                strcpy(fileName, arg);
+                fileSet = true;
+
+                fseek(file, 0, SEEK_END);
+                long len = ftell(file);
+                fseek(file, 0, SEEK_SET);
+
+                if (len >= 3) {
+                    unsigned char bom[3];
+                    fread(bom, 1, 3, file);
+                    if (!(bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF)) {
+                        fseek(file, 0, SEEK_SET);
+                    } else {
+                        len -= 3;
+                    }
+                }
+
+                char *new_text = malloc(len + 1);
+                if (new_text) {
+                    fread(new_text, 1, len, file);
+                    new_text[len] = '\0';
+                    int j = 0;
+                    for (int k = 0; k < len; k++) {
+                        if (new_text[k] == '\r' && k + 1 < len && new_text[k + 1] == '\n') continue;
+                        new_text[j++] = new_text[k];
+                    }
+                    new_text[j] = '\0';
+                    length = j;
+                    free(text);
+                    text = new_text;
+                }
+
             }
 
-            if(strcmp(option,"-r")){
-                readOnly=true;
-            }
-            
-            free(option);
+            fclose(file);
+        } else {
+            printf("Ignoring extra argument: %s\n", arg);
         }
     }
     
