@@ -3,7 +3,7 @@
 #include "utils.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <conio.h>  
+
 
 extern char* text;
 extern int length;

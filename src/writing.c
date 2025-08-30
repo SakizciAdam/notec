@@ -256,7 +256,7 @@ void handleKeyW(char c) {
     }
 }
 
-
+#ifdef _WIN32
 
 void renderW() {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -469,3 +469,69 @@ void renderW() {
     free(screenBuf);
     free(attrBuf);
 }
+#else
+// ---------------- LINUX RENDERER (ncurses, no syntax highlight) ----------------
+#include <ncurses.h>
+
+void renderW() {
+    int rows, columns;
+    getmaxyx(stdscr, rows, columns);
+    int textRows = rows - 1;
+
+    if (cursorY < scrollY) scrollY = cursorY;
+    if (cursorY >= scrollY + textRows) scrollY = cursorY - textRows + 1;
+    if (cursorX < scrollX) scrollX = cursorX;
+    if (cursorX >= scrollX + columns) scrollX = cursorX - columns + 1;
+
+    erase();
+
+    int charIndex = 0, currentLine = 0;
+    while (currentLine < scrollY && charIndex < length) {
+        if (text[charIndex] == '\n') currentLine++;
+        charIndex++;
+    }
+
+    for (int y = 0; y < textRows; y++) {
+        if (charIndex >= length) break;
+
+        int lineStart = charIndex;
+        int lineLen = 0;
+        while (lineStart + lineLen < length && text[lineStart + lineLen] != '\n') lineLen++;
+
+        int renderStart = lineStart + scrollX;
+        int renderEnd = lineStart + lineLen;
+        int charsToRender = renderEnd - renderStart;
+        if (charsToRender > columns) charsToRender = columns;
+
+        for (int i = 0; i < charsToRender; i++) {
+            int idx = renderStart + i;
+            bool selected = false;
+            if (selStart != -1 && selEnd != -1) {
+                int start = selStart < selEnd ? selStart : selEnd;
+                int end   = selStart > selEnd ? selStart : selEnd;
+                selected = (idx >= start && idx < end);
+            }
+            if (selected) attron(A_REVERSE);
+            mvaddch(y, i, text[idx]);
+            if (selected) attroff(A_REVERSE);
+        }
+
+        charIndex = lineStart + lineLen;
+        if (charIndex < length && text[charIndex] == '\n') charIndex++;
+    }
+
+    move(rows - 1, 0);
+    clrtoeol();
+    char statusBar[256];
+    float sizeKB = (float)length / 1024.0f;
+    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB%s%s%s",
+             cursorY+1, cursorX+1, getMaxLine(), sizeKB,
+             readOnly ? " | Readonly" : "",
+             (fileSet && fileName) ? " | " : "",
+             (fileSet && fileName) ? fileName : "");
+    mvaddnstr(rows - 1, 0, statusBar, columns);
+
+    move(cursorY - scrollY, cursorX - scrollX);
+    refresh();
+}
+#endif

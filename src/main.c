@@ -4,6 +4,9 @@
 #define CONTROL_MODE 1
 
 int main(int argc, char **argv) {
+    #ifndef _WIN32 
+    initscr(); cbreak(); noecho(); keypad(stdscr, TRUE);
+    #endif
     int mode=WRITING_MODE;
     initW();
     initC();
@@ -107,5 +110,8 @@ int main(int argc, char **argv) {
           
         }
     }
+    #ifndef _WIN32 
+    endwin();
+    #endif
     return 0;
 }

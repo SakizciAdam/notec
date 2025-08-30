@@ -12,7 +12,7 @@ void setStatusText(const char* input){
     statusText[199] = '\0'; // Ensure null-termination
     statusLength = strlen(statusText);
 }
-
+#ifdef _WIN32
 void renderC() {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
@@ -154,7 +154,70 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
 
     SetConsoleMode(hIn, mode);
 }
+#else
+void getInput(const char* prompt, char* buffer, int bufferSize) {
+    
+}
+void renderC() {
+    int rows, columns;
+    getmaxyx(stdscr, rows, columns);
+    int textRows = rows - 1;
 
+    erase();
+
+    int charIndex = 0;
+    int currentLine = 0;
+    while (currentLine < scrollY && charIndex < length) {
+        if (text[charIndex] == '\n') currentLine++;
+        charIndex++;
+    }
+
+    for (int y = 0; y < textRows; y++) {
+        if (charIndex >= length) break;
+
+        int lineStartIndex = charIndex;
+        int lineLength = 0;
+        while (lineStartIndex + lineLength < length && text[lineStartIndex + lineLength] != '\n') 
+            lineLength++;
+
+        int renderStartIndex = lineStartIndex + scrollX;
+        int renderEndIndex = lineStartIndex + lineLength;
+        int charsToRender = renderEndIndex - renderStartIndex;
+        if (charsToRender > columns) charsToRender = columns;
+
+        for (int i = 0; i < charsToRender; i++) {
+            int idx = renderStartIndex + i;
+
+            if (selStart != -1 && selEnd != -1) {
+                int start = selStart < selEnd ? selStart : selEnd;
+                int end   = selStart > selEnd ? selStart : selEnd;
+                if (idx >= start && idx < end) attron(A_REVERSE);
+            }
+
+            mvaddch(y, i, text[idx]);
+
+            if (selStart != -1 && selEnd != -1) attroff(A_REVERSE);
+        }
+
+        charIndex = lineStartIndex + lineLength;
+        if (charIndex < length && text[charIndex] == '\n') charIndex++;
+    }
+
+    move(rows - 1, 0);
+    clrtoeol();
+    printw("notec | v1.0 | %s", statusText);
+
+    int cx = 0, cy = 0;
+    int finalIndex = (selEnd != -1) ? selEnd : getTextIndex();
+    for (int i = 0; i < finalIndex && i < length; i++) {
+        if (text[i] == '\n') { cy++; cx = 0; }
+        else cx++;
+    }
+    move(cy - scrollY, cx - scrollX);
+
+    refresh();
+}
+#endif
 void reset(){
     setStatusText(" ");
     renderC();
@@ -272,7 +335,7 @@ void selectAll() {
     selStart = 0;
     selEnd = length;
 }
-
+#ifdef _WIN32
 void copySelection() {
     if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
     setStatusText("Error");
@@ -314,7 +377,15 @@ void pasteClipboard() {
     GlobalUnlock(hData);
     CloseClipboard();
 }
+#else
+void copySelection() {
+    setStatusText("Copy not included in Linux version");
+}
 
+void pasteClipboard() {
+    setStatusText("Paste not included in Linux version");
+}
+#endif
 void goToLine() {
     reset();
     char input[20];
