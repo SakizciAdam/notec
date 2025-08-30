@@ -264,11 +264,9 @@ void handleKeyW(char c){
     
 }
 
+
 void renderW() {
-    cls(); 
-
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
     CONSOLE_SCREEN_BUFFER_INFO sbInfo;
     GetConsoleScreenBufferInfo(hOut, &sbInfo);
     int columns = sbInfo.dwSize.X;
@@ -280,198 +278,201 @@ void renderW() {
     if (cursorX < scrollX) scrollX = cursorX;
     if (cursorX >= scrollX + columns) scrollX = cursorX - columns + 1;
 
-    int currentLine = 0;
+    char *screenBuf = malloc(columns * rows);
+    WORD *attrBuf = malloc(columns * rows * sizeof(WORD));
+    if (!screenBuf || !attrBuf) return;
+
+    for (int i = 0; i < columns*rows; i++) {
+        screenBuf[i] = ' ';
+        attrBuf[i] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    }
+
     int charIndex = 0;
+    int currentLine = 0;
     while (currentLine < scrollY && charIndex < length) {
         if (text[charIndex] == '\n') currentLine++;
         charIndex++;
     }
 
+    const char *keywords[] = {"int","char","if","else","for","while","return","void","struct","typedef","float","double"
+                    ,"uint","int32","short","ushort","long","let","var","const"}; //probably missing a ton
+
     for (int y = 0; y < textRows; y++) {
         if (charIndex >= length) break;
 
-        COORD linePos = {0, y};
-        SetConsoleCursorPosition(hOut, linePos);
+        int lineStart = charIndex;
+        int lineLen = 0;
+        while (lineStart + lineLen < length && text[lineStart + lineLen] != '\n')
+            lineLen++;
 
-        int lineStartIndex = charIndex;
-        int lineLength = 0;
-        while (lineStartIndex + lineLength < length && text[lineStartIndex + lineLength] != '\n') {
-            lineLength++;
-        }
+        int renderStart = lineStart + scrollX;
+        int renderEnd = lineStart + lineLen;
+        int i = 0;
+        while (i < lineLen && i < columns) {
+            int idx = renderStart + i;
+            if (idx >= length) break;
+            char c = text[idx];
+            int pos = y*columns + i;
 
-        int renderStartIndex = lineStartIndex + scrollX;
-        int renderEndIndex = lineStartIndex + lineLength;
-        if (renderStartIndex < renderEndIndex) {
-            int charsToRender = renderEndIndex - renderStartIndex;
-            if (charsToRender > columns) charsToRender = columns;
 
-            int i = 0;
-            while (i < charsToRender) {
-                int idx = renderStartIndex + i;
-                char c = text[idx];
-
-                if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
-                    SetConsoleTextAttribute(hOut, BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                    putchar(c);
-                    i++;
-                    continue;
-                }
-
-                if (c == '/' && idx + 1 < length && text[idx + 1] == '/') {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_GREEN | FOREGROUND_BLUE); // cyan-ish
-                    while (i < charsToRender) {
-                        putchar(text[renderStartIndex + i]);
-                        i++;
-                    }
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                    continue;
-                }
-                if (c == '"') {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_GREEN);
-                    putchar(c);
-                    i++;
-                    while (i < charsToRender) {
-                        idx = renderStartIndex + i;
-                        putchar(text[idx]);
-                        if (text[idx] == '"') {
-                            i++;
-                            break;
-                        }
-                        i++;
-                    }
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                    continue;
-                }
-
-                if (isdigit(c)) {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN); 
-                    putchar(c);
-                    i++;
-                    while (i < charsToRender && isdigit(text[renderStartIndex + i])) {
-                        putchar(text[renderStartIndex + i]);
-                        i++;
-                    }
-
-                    if (i < charsToRender) {
-                        char suffix = text[renderStartIndex + i];
-                        if (suffix == 'f' || suffix == 'F' || suffix == 'd' || suffix == 'D' ||
-                            suffix == 'u' || suffix == 'U' || suffix == 'l' || suffix == 'L') {
-                            putchar(suffix);
-                            i++;
-                        }
-                    }
-
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
-                    continue;
-                }
-                if (c == '#' && i == 0) { 
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_BLUE);
-                    while (i < charsToRender) {
-                        char pc = text[renderStartIndex + i];
-                        putchar(pc);
-                        i++;
-                        if (pc == '\n') break;
-                    }
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                    continue;
-                }
-                if (c == '\'') {
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN); 
-                    putchar(c);
-                    i++;
-                    while (i < charsToRender) {
-                        idx = renderStartIndex + i;
-                        char pc = text[idx];
-                        putchar(pc);
-                        i++;
-
-                        if (pc == '\'' && text[idx - 1] != '\\') {
-                            break;
-                        }
-                    }
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
-                    continue;
-                }
-                if ((c == '=' && idx + 1 < length && text[idx + 1] == '=') ||
-                    c == '{' || c == '}' || c == '(' || c == ')' || c == '[' || c == ']') {
-
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_INTENSITY); 
-                    putchar(c);
-
-                    if (c == '=' && text[idx + 1] == '=') {
-                        putchar('=');
-                        i++; 
-                    }
-
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
-                    i++;
-                    continue;
-                }
-                if (isalpha(c) || c == '_') {
-                    char buf[64];
-                    int bi = 0;
-                    int j = i;
-                    while (j < charsToRender && (isalnum(text[renderStartIndex + j]) || text[renderStartIndex + j] == '_') && bi < 63) {
-                        buf[bi++] = text[renderStartIndex + j];
-                        j++;
-                    }
-                    buf[bi] = '\0';
-
-                    const char *keywords[] = {"int","char","if","else","for","while","return","void","struct","typedef","float","double"
-                    ,"uint","int32","short","ushort","long","let","var","const"}; //probably missing a ton
-                    int isKw = 0;
-                    for (int k = 0; k < sizeof(keywords)/sizeof(keywords[0]); k++) {
-                        if (strcmp(buf, keywords[k]) == 0) { isKw = 1; break; }
-                    }
-
-                    if (isKw) {
-                        SetConsoleTextAttribute(hOut, FOREGROUND_BLUE | FOREGROUND_GREEN); 
-                    } else {
-                        int nextIdx = renderStartIndex + j;
-                        while (nextIdx < length && (text[nextIdx] == ' ' || text[nextIdx] == '\t')) nextIdx++;
-                        if (nextIdx < length && text[nextIdx] == '(') {
-                            SetConsoleTextAttribute(hOut, FOREGROUND_BLUE | FOREGROUND_INTENSITY); 
-                        }
-                    }
-
-                    for (int k = 0; k < bi; k++) putchar(buf[k]);
-                    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE); 
-
-                    i = j;
-                    continue;
-                }
-
-                SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-                putchar(c);
-                i++;
+            if (selStart != -1 && selEnd != -1 && idx >= selStart && idx < selEnd) {
+                attrBuf[pos] = BACKGROUND_BLUE | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                screenBuf[pos] = c;
+                i++; continue;
             }
+
+            if (c == '/' && idx + 1 < length && text[idx+1] == '/') {
+                for (int j = i; j < lineLen && j < columns; j++) {
+                    int p = y*columns + j;
+                    screenBuf[p] = text[lineStart + scrollX + j];
+                    attrBuf[p] = FOREGROUND_GREEN | FOREGROUND_BLUE;
+                }
+                break; 
+            }
+
+            if (c == '"') {
+                attrBuf[pos] = FOREGROUND_GREEN;
+                screenBuf[pos] = c;
+                i++;
+                while (i < lineLen && i < columns) {
+                    int idx2 = renderStart + i;
+                    pos = y*columns + i;
+                    screenBuf[pos] = text[idx2];
+                    attrBuf[pos] = FOREGROUND_GREEN;
+                    if (text[idx2] == '"') { i++; break; }
+                    i++;
+                }
+                continue;
+            }
+
+
+            if (c == '\'') {
+                attrBuf[pos] = FOREGROUND_GREEN | FOREGROUND_RED;
+                screenBuf[pos] = c;
+                i++;
+                while (i < lineLen && i < columns) {
+                    int idx2 = renderStart + i;
+                    pos = y*columns + i;
+                    screenBuf[pos] = text[idx2];
+                    attrBuf[pos] = FOREGROUND_GREEN | FOREGROUND_RED;
+                    if (text[idx2] == '\'') { i++; break; }
+                    i++;
+                }
+                continue;
+            }
+
+            if (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']') {
+                screenBuf[pos] = c;
+                attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN; // yellow
+                i++;
+                continue;
+            }
+
+            if (isdigit(c)) {
+                attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN; 
+                screenBuf[pos] = c;
+                i++;
+                while (i < lineLen && i < columns && isdigit(text[renderStart + i])) {
+                    pos = y*columns + i;
+                    screenBuf[pos] = text[renderStart + i];
+                    attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN;
+                    i++;
+                }
+
+                if (i < lineLen && i < columns) {
+                    char s = text[renderStart + i];
+                    if (s=='f'||s=='F'||s=='d'||s=='D'||s=='u'||s=='U'||s=='l'||s=='L') {
+                        pos = y*columns + i;
+                        screenBuf[pos] = s;
+                        attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN;
+                        i++;
+                    }
+                }
+                continue;
+            }
+
+            if (c == '#' && idx + 7 < length) {
+                if (strncmp(&text[idx], "#include", 8) == 0) {
+                    for (int j = 0; j < 8 && i+j < columns; j++) {
+                        int p = y*columns + i + j;
+                        screenBuf[p] = text[idx + j];
+                        attrBuf[p] = FOREGROUND_RED | FOREGROUND_BLUE;
+                    }
+                    i += 8;
+                    continue;
+                }
+            }
+
+            if (isalpha(c) || c == '_') {
+                char buf[64]; 
+                int bi = 0, j = i;
+
+                while (j < lineLen && j < columns && (isalnum(text[renderStart + j]) || text[renderStart + j] == '_') && bi < 63) {
+                    buf[bi++] = text[renderStart + j];
+                    j++;
+                }
+                buf[bi] = '\0';
+
+                int isKw = 0;
+                for (int k = 0; k < sizeof(keywords)/sizeof(keywords[0]); k++) {
+                    if (strcmp(buf, keywords[k]) == 0) { isKw = 1; break; }
+                }
+
+                int isFunc = 0;
+                if (!isKw) {
+                    int nextIdx = renderStart + j;
+                    while (nextIdx < length && isspace(text[nextIdx])) nextIdx++;
+                    if (nextIdx < length && text[nextIdx] == '(') {
+                        isFunc = 1;
+                    }
+                }
+
+                WORD color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE; 
+                if (isKw) color = FOREGROUND_BLUE | FOREGROUND_GREEN;           
+                if (isFunc) color = FOREGROUND_RED | FOREGROUND_BLUE;           
+
+                for (int k = 0; k < bi; k++) {
+                    pos = y*columns + i + k;
+                    screenBuf[pos] = buf[k];
+                    attrBuf[pos] = color;
+                }
+
+                i = j;
+                continue;
+            }
+
+            screenBuf[pos] = c;
+            attrBuf[pos] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+            i++;
         }
 
-        charIndex = lineStartIndex + lineLength;
+        charIndex = lineStart + lineLen;
         if (charIndex < length && text[charIndex] == '\n') charIndex++;
     }
-    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
-    COORD statusBarPos = {0, rows - 1};
-    SetConsoleCursorPosition(hOut, statusBarPos);
+    for (int x=0;x<columns;x++) {
+        int p = (rows-1)*columns + x;
+        screenBuf[p] = ' ';
+        attrBuf[p] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    }
+
     char statusBar[200];
-    float size = (float)length / 1024.0f;
-    snprintf(statusBar, sizeof(statusBar), "Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY + 1, cursorX + 1, getMaxLine(), size);
-
-    if (readOnly) {
-        strcat(statusBar, " | Readonly");
-    }
-
+    float size = (float)length/1024.0f;
+    snprintf(statusBar,sizeof(statusBar),"Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB", cursorY+1, cursorX+1, getMaxLine(), size);
+    if (readOnly) strcat(statusBar," | Readonly");
     if (fileSet) {
-        char *t = (char*)malloc(50 * sizeof(char));
-        sprintf(t, " | %s", fileName);
-        strcat(statusBar, t);
-        free(t);
+        char t[50]; sprintf(t," | %s", fileName); strcat(statusBar,t);
+    }
+    for (int i=0;i<strlen(statusBar) && i<columns;i++) {
+        screenBuf[(rows-1)*columns + i] = statusBar[i];
+        attrBuf[(rows-1)*columns + i] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
 
-    printf("%-*s", columns, statusBar); 
-    COORD pos = {cursorX - scrollX, cursorY - scrollY};
-    SetConsoleCursorPosition(hOut, pos);
+    DWORD written;
+    WriteConsoleOutputCharacter(hOut, screenBuf, columns*rows, (COORD){0,0}, &written);
+    WriteConsoleOutputAttribute(hOut, attrBuf, columns*rows, (COORD){0,0}, &written);
+    SetConsoleCursorPosition(hOut, (COORD){cursorX - scrollX, cursorY - scrollY});
 
-    SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    free(screenBuf);
+    free(attrBuf);
 }
