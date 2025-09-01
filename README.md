@@ -1,6 +1,6 @@
 # notec
 
-Notec is a lightweight, console-based text editor for Windows.
+Notec is a lightweight, console-based text editor for Windows and Linux.
 
 ## Features
 - Simple and fast text editing
