@@ -250,7 +250,7 @@ void handleKeyW(char c) {
             cursorX = 0;
             break;
         default:
-            if (isascii(c)) {
+            if ((unsigned char)c <= 127) {
                 addCharAt(c, idx);
                 cursorX++;
             }

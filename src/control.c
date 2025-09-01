@@ -177,7 +177,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
         if (read(STDIN_FILENO, &c, 1) > 0) {
             if (c == '\n' || c == '\r') {
                 done = true;
-            } else if (c == 127 || c == '\b') { // backspace on Linux is usually 127
+            } else if (c == 127 || c == '\b') { 
                 if (len > 0) {
                     len--;
                     buffer[len] = '\0';
