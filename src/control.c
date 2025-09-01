@@ -464,10 +464,10 @@ void handleKeyC(char c) {
 
     if (lower == 'q') exit(0);
     if (lower == 's') toggleSelectionMode();
-    else if ((int)c == 72) moveCursorOrSelectionUp();
-    else if ((int)c == 80) moveCursorOrSelectionDown();
-    else if ((int)c == 77) moveCursorOrSelectionRight();
-    else if ((int)c == 75) moveCursorOrSelectionLeft();
+    else if ((int)c == UP_ARROW) moveCursorOrSelectionUp();
+    else if ((int)c == DOWN_ARROW) moveCursorOrSelectionDown();
+    else if ((int)c == RIGHT_ARROW) moveCursorOrSelectionRight();
+    else if ((int)c == LEFT_ARROW) moveCursorOrSelectionLeft();
     else if (lower == 'p') clearSelection();
     else if (lower == 'a') selectAll();
     else if (lower == 'c') copySelection();

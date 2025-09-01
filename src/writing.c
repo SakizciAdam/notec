@@ -230,8 +230,8 @@ void handleKeyW(char c) {
     #endif
     if (arrow) {
         switch ((int)c) {
-            case DOWN_ARROW: moveCursorDown(); return;
-            case UP_ARROW: moveCursorUp(); return;
+            case DOWN_ARROW: moveCursorUp(); return;
+            case UP_ARROW: moveCursorDown(); return;
             case LEFT_ARROW: moveCursorLeft(); return;
             case RIGHT_ARROW: moveCursorRight(); return;
         }

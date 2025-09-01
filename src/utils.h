@@ -24,10 +24,10 @@
     #include <sys/ioctl.h>
     #define RETURN 10
     #define BACKSPACE 7
-    #define UP_ARROW 2
+    #define UP_ARROW 3
     #define LEFT_ARROW 4
     #define RIGHT_ARROW 5
-    #define DOWN_ARROW 3
+    #define DOWN_ARROW 2
     bool kbhit();
 #endif
 
