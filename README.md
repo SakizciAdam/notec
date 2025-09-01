@@ -25,7 +25,7 @@ make
 git clone https://github.com/SakizciAdam/notec.git
 cd notec
 make
-make install // sudo make install for system wide installation
+make install #sudo make install for system wide installation
 notec <pathtofile> [-r/-v]
 ```
 
