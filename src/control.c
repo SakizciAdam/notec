@@ -405,7 +405,7 @@ void pasteClipboard() {
             char ch = buffer[i];
             if ((int)ch == 13) {}
             else if ((int)ch == 9) handleKeyW('#');
-            else if ((unsigned char)cH <= 127) handleKeyW(ch);
+            else if ((unsigned char)ch <= 127) handleKeyW(ch);
         }
         goToIndex(oldIndex);
     }
