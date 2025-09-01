@@ -156,8 +156,42 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
 }
 #else
 void getInput(const char* prompt, char* buffer, int bufferSize) {
-    
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);     
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO); 
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    int len = 0;
+    buffer[0] = '\0';
+    bool done = false;
+
+    while (!done) {
+  
+        char display[256];
+        snprintf(display, sizeof(display), "%s%s", prompt, buffer);
+        setStatusText(display);
+        renderC();
+
+        char c;
+        if (read(STDIN_FILENO, &c, 1) > 0) {
+            if (c == '\n' || c == '\r') {
+                done = true;
+            } else if (c == 127 || c == '\b') { // backspace on Linux is usually 127
+                if (len > 0) {
+                    len--;
+                    buffer[len] = '\0';
+                }
+            } else if (isprint((unsigned char)c) && len < bufferSize - 1) {
+                buffer[len++] = c;
+                buffer[len] = '\0';
+            }
+        }
+    }
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore settings
 }
+
 void renderC() {
     int rows, columns;
     getmaxyx(stdscr, rows, columns);
@@ -411,7 +445,7 @@ void saveFile() {
     if (!fileSet) {
         char saveLocation[200];
         getInput("Save to: ", saveLocation, sizeof(saveLocation));
-        printf("\nSaving to %s\n", saveLocation);
+        //printf("\nSaving to %s\n", saveLocation);
         fileSet = true;
         if (fileName == NULL) fileName = malloc(strlen(saveLocation) + 1);
         else fileName = realloc(fileName, strlen(saveLocation) + 1);

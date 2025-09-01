@@ -130,7 +130,7 @@ void initW(){
   
 }
 
-void moveCursorUp(){
+void moveCursorDown(){
     if(cursorY+1==getMaxLine()){
         cursorX=getLineLength(cursorY);
         return;
@@ -142,7 +142,7 @@ void moveCursorUp(){
     arrow=false;
 }
 
-void moveCursorDown(){
+void moveCursorUp(){
     if(cursorY>0){
         int previousLineLength=getLineLength(cursorY-1);
 
@@ -230,8 +230,8 @@ void handleKeyW(char c) {
     #endif
     if (arrow) {
         switch ((int)c) {
-            case DOWN_ARROW: moveCursorUp(); return;
-            case UP_ARROW: moveCursorDown(); return;
+            case DOWN_ARROW: moveCursorDown(); return;
+            case UP_ARROW: moveCursorUp(); return;
             case LEFT_ARROW: moveCursorLeft(); return;
             case RIGHT_ARROW: moveCursorRight(); return;
         }
