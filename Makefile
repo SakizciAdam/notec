@@ -13,10 +13,8 @@ LIBS =
 ifeq ($(OS),Windows_NT)
     LIBS =
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        LIBS = -lncurses -ltinfo
-    endif
+    LIBS = -lncurses -ltinfo
+    CFLAGS += -D_GNU_SOURCE
 endif
 
 all: $(TARGET)
