@@ -10,10 +10,10 @@
     #include <conio.h>
     #define RETURN 13
     #define BACKSPACE 8
-    #define UP_ARROW 80
+    #define UP_ARROW 72
     #define LEFT_ARROW 75
     #define RIGHT_ARROW 77
-    #define DOWN_ARROW 72
+    #define DOWN_ARROW 80
 #else
     #include <ctype.h>
     #include <string.h>

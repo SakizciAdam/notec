@@ -327,11 +327,12 @@ void toggleSelectionMode() {
 }
 
 void moveCursorOrSelectionUp() {
+ 
     if (selectionMode) {
         if (selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionUpLine();
         setStatusText("Selected");
-    } else moveCursorDown();
+    } else moveCursorUp();
 }
 
 void moveCursorOrSelectionDown() {
@@ -339,7 +340,7 @@ void moveCursorOrSelectionDown() {
         if (selStart == -1) selStart = selEnd = getTextIndex();
         moveSelectionDownLine();
         setStatusText("Selected");
-    } else moveCursorUp();
+    } else moveCursorDown();
 }
 
 void moveCursorOrSelectionLeft() {
