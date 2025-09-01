@@ -95,7 +95,12 @@ int main(int argc, char **argv) {
                 
                 c=-9999;
             }
-            //printf("%d %c\n",c,c);
+            /*
+            printf("%d %c\n",c,c);
+
+            if(true){
+                continue;
+            }*/
             
             if(mode==WRITING_MODE){
                 handleKeyW(c);

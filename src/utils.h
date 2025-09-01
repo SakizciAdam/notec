@@ -8,6 +8,12 @@
     #include <windows.h>
     #include <io.h>
     #include <conio.h>
+    #define RETURN 13
+    #define BACKSPACE 8
+    #define UP_ARROW 80
+    #define LEFT_ARROW 75
+    #define RIGHT_ARROW 77
+    #define DOWN_ARROW 72
 #else
     #include <ctype.h>
     #include <string.h>
@@ -16,7 +22,12 @@
     #include <termios.h>  
     #include <ncurses.h>
     #include <sys/ioctl.h>
-
+    #define RETURN 10
+    #define BACKSPACE 7
+    #define UP_ARROW 2
+    #define LEFT_ARROW 4
+    #define RIGHT_ARROW 5
+    #define DOWN_ARROW 3
     bool kbhit();
 #endif
 

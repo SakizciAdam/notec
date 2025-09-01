@@ -193,7 +193,7 @@ void handleKeyW(char c) {
 
     int idx = getTextIndex();
 
-    if ((int)c == 8) {
+    if ((int)c == BACKSPACE) {
         if (selStart != -1 && selEnd != -1 && selStart != selEnd) {
             int start = selStart < selEnd ? selStart : selEnd;
             int end = selStart > selEnd ? selStart : selEnd;
@@ -225,13 +225,15 @@ void handleKeyW(char c) {
         }
         return;
     }
-
+    #ifndef _WIN32 
+    arrow=true;
+    #endif
     if (arrow) {
         switch ((int)c) {
-            case 72: moveCursorDown(); return;
-            case 80: moveCursorUp(); return;
-            case 75: moveCursorLeft(); return;
-            case 77: moveCursorRight(); return;
+            case DOWN_ARROW: moveCursorDown(); return;
+            case UP_ARROW: moveCursorUp(); return;
+            case LEFT_ARROW: moveCursorLeft(); return;
+            case RIGHT_ARROW: moveCursorRight(); return;
         }
     }
 
@@ -242,7 +244,7 @@ void handleKeyW(char c) {
                 cursorX++;
             }
             break;
-        case 13:
+        case RETURN:
             addCharAt('\n', idx);
             cursorY++;
             cursorX = 0;
