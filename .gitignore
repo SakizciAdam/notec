@@ -58,3 +58,4 @@ dkms.conf
 build/
 compile.sh
 debug.sh
+notec
