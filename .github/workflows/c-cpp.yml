@@ -7,9 +7,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-windows:
 
-    runs-on: [windows-latest,ubuntu-latest]
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make
+      run: make
+  build-linux:
+
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
