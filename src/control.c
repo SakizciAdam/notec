@@ -414,11 +414,46 @@ void pasteClipboard() {
 }
 #else
 void copySelection() {
-    setStatusText("Copy not included in Linux version");
+    if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
+
+    int start = selStart < selEnd ? selStart : selEnd;
+    int end   = selStart > selEnd ? selStart : selEnd;
+    int lengthToCopy = end - start;
+    if (lengthToCopy <= 0) return;
+
+    char *buffer = malloc(lengthToCopy + 1);
+    if (!buffer) { setStatusText("Error allocating memory"); return; }
+    memcpy(buffer, text + start, lengthToCopy);
+    buffer[lengthToCopy] = '\0';
+
+    FILE *pipe = popen("xclip -selection clipboard", "w");
+    if (!pipe) { setStatusText("Error: xclip not available"); free(buffer); return; }
+    fwrite(buffer, 1, lengthToCopy, pipe);
+    pclose(pipe);
+    free(buffer);
+
+    setStatusText("Copied");
 }
 
 void pasteClipboard() {
-    setStatusText("Paste not included in Linux version");
+    FILE *pipe = popen("xclip -selection clipboard -o", "r");
+    if (!pipe) { setStatusText("Error: xclip not available"); return; }
+
+    char buffer[4096];
+    int oldIndex = getTextIndex();
+    setStatusText("Pasted");
+
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        for (int i = 0; i < strlen(buffer); i++) {
+            char ch = buffer[i];
+            if ((int)ch == 13) {} 
+            else if ((int)ch == 9) handleKeyW('#');
+            else if (isascii(ch)) handleKeyW(ch);
+        }
+    }
+    pclose(pipe);
+
+    goToIndex(oldIndex);
 }
 #endif
 void goToLine() {

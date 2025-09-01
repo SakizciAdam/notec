@@ -5,8 +5,9 @@
 
 int main(int argc, char **argv) {
     #ifndef _WIN32 
-    initscr(); cbreak(); noecho(); keypad(stdscr, TRUE);
+    initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); initColors();
     #endif
+    
     int mode=WRITING_MODE;
     initW();
     initC();
