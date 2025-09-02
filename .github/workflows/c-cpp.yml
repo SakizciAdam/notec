@@ -1,26 +1,19 @@
-name: C/C++ CI
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
-  build-windows:
+  upload:
+    name: Generate Build Artifacts
 
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        version: [dev]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: make
-      run: make
-  build-linux:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
-    - name: make
-      run: make
-
+    - name: Build
+      run: make >
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: notec-${{ matrix.os }}-${{ matrix.version }}
+        path: notec
