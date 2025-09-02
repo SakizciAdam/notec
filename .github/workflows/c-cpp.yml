@@ -1,3 +1,11 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
   upload:
     name: Generate Build Artifacts
