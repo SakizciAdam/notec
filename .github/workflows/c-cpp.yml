@@ -22,5 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: make && make install
+      run: make
+    - name: install
+      run: make install
 
