@@ -7,21 +7,20 @@ on:
     branches: [ "main" ]
 
 jobs:
-  upload:
-    name: Generate Build Artifacts
+  build-windows:
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        version: [dev]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
-    - name: Build
+    - uses: actions/checkout@v4
+    - name: make
       run: make
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: notec-${{ matrix.os }}-${{ matrix.version }}
-        path: notec
+  build-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make
+      run: make && make install
+
