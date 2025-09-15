@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -O2 -g
+CFLAGS = -Wall -Wextra -std=c11 -O2 -g -w
 
 TARGET = notec
 SRCDIR = src
@@ -11,7 +11,7 @@ OBJS = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCS))
 LIBS =
 
 ifeq ($(OS),Windows_NT)
-    LIBS =
+    LIBS = -lpdcurses
 else
     LIBS = -lncurses -ltinfo
     CFLAGS += -D_GNU_SOURCE

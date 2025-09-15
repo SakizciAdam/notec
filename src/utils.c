@@ -1,26 +1,16 @@
 #include "utils.h"
 #include <stdio.h>
 
-bool readOnly = false;
+
+bool readOnly = 0;
 char* fileName = NULL;
-bool fileSet = false;
+bool fileSet = 0;
+
 
 void cls() {
-    #ifdef _WIN32
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        DWORD written;
+    printf("\033[2J\033[H");
+    fflush(stdout);
 
-        if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
-
-        FillConsoleOutputCharacter(hConsole, ' ', csbi.dwSize.X * csbi.dwSize.Y, (COORD){0,0}, &written);
-        FillConsoleOutputAttribute(hConsole, csbi.wAttributes, csbi.dwSize.X * csbi.dwSize.Y, (COORD){0,0}, &written);
-        SetConsoleCursorPosition(hConsole, (COORD){0,0});
-    #else
-   
-        printf("\033[2J\033[H");
-        fflush(stdout);
-    #endif
 }
 #ifndef _WIN32
 bool kbhit()
@@ -32,10 +22,17 @@ bool kbhit()
 
 
 
+
+#endif
+
+
 void initColors() {
     if (!has_colors()) return;
     start_color();
     use_default_colors();
+    init_color(COLOR_RED, 700, 0, 0);
+
+
 
     init_pair(CP_DEFAULT,   COLOR_WHITE,   -1);
     init_pair(CP_COMMENT,   COLOR_CYAN,    -1);   // FOREGROUND_GREEN | FOREGROUND_BLUE
@@ -44,10 +41,7 @@ void initColors() {
     init_pair(CP_BRACKET,   COLOR_YELLOW,  -1);   // FOREGROUND_RED | FOREGROUND_GREEN -> yellow
     init_pair(CP_NUMBER,    COLOR_YELLOW,  -1);   // same as bracket
     init_pair(CP_PREPROC,   COLOR_MAGENTA, -1);   // FOREGROUND_RED | FOREGROUND_BLUE -> magenta
-    init_pair(CP_KEYWORD,   COLOR_CYAN,    -1);   // FOREGROUND_BLUE | FOREGROUND_GREEN -> cyan
+    init_pair(CP_KEYWORD,   COLOR_MAGENTA,    -1);   // FOREGROUND_BLUE | FOREGROUND_GREEN -> cyan
     init_pair(CP_FUNCTION,  COLOR_MAGENTA, -1);   // FOREGROUND_RED | FOREGROUND_BLUE -> magenta-ish
     init_pair(CP_SELECTION, COLOR_WHITE,   COLOR_BLUE); // selection: blue background
 }
-
-#endif
-

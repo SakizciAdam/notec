@@ -4,9 +4,9 @@
 #define CONTROL_MODE 1
 
 int main(int argc, char **argv) {
-    #ifndef _WIN32 
+
     initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); initColors();
-    #endif
+
     
     int mode=WRITING_MODE;
     initW();
@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
                 }
             }
         } else if (!fileSet) {
-            FILE *file = fopen(arg, "rb");
+            FILE *file;
+            file = fopen(arg, "rb");
             if (!file) {
                 fileName = malloc(strlen(arg) + 1);
                 strcpy(fileName, arg);
@@ -81,12 +82,12 @@ int main(int argc, char **argv) {
     }
     
 
-
+    setStatusText(":)");
     renderW();
     while(true){
         if(kbhit()){
 
-            char c=getch();
+            char c=_getch();
             if((int)c==27){
                 if(mode>1){
                     mode=0;
@@ -116,8 +117,8 @@ int main(int argc, char **argv) {
           
         }
     }
-    #ifndef _WIN32 
+
     endwin();
-    #endif
+
     return 0;
 }
