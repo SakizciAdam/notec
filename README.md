@@ -34,6 +34,7 @@ notec <pathtofile> [-r/-v]
 ### Windows
 
 - MinGW (Build requirement)
+- pdcurses
 
 ### Linux
  
