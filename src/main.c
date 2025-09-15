@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     while(true){
         if(kbhit()){
 
-            char c=_getch();
+            char c=getch();
             if((int)c==27){
                 if(mode>1){
                     mode=0;
