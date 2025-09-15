@@ -87,7 +87,13 @@ int main(int argc, char **argv) {
     while(true){
         if(kbhit()){
 
-            char c=getch();
+            char c;
+
+            #ifdef _WIN32
+            c=_getch();
+            #else
+            c=getch();
+            #endif
             if((int)c==27){
                 if(mode>1){
                     mode=0;
