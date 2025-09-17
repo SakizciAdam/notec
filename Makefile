@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -O2 -g -w
+CFLAGS = -Wall -Wextra -std=c11 -O2 -g -Iinclude -w
 
 TARGET = notec
 SRCDIR = src

@@ -3,16 +3,14 @@
 
 
 #include <stdio.h>
-#define CP_DEFAULT    1
-#define CP_COMMENT    2
-#define CP_STRING     3
-#define CP_CHAR       4
-#define CP_BRACKET    5
-#define CP_NUMBER     5
-#define CP_PREPROC    6
-#define CP_KEYWORD    7
-#define CP_FUNCTION   8
-#define CP_SELECTION  9
+#include <string.h>
+
+
+#define WRITING_MODE 0
+#define CONTROL_MODE 1
+
+
+
 
 #ifdef _WIN32
     #include <windows.h>
@@ -27,7 +25,7 @@
 #else
     #include <stdbool.h>
     #include <ctype.h>
-    #include <string.h>
+    
     #include <stdlib.h>
     #include <unistd.h>
     #include <termios.h>  
@@ -46,11 +44,38 @@
     bool kbhit();
 #endif
 
+enum {
+    CP_DEFAULT = 1,
+    CP_KEYWORD,
+    CP_STRING,
+    CP_CHAR,
+    CP_NUMBER,
+    CP_COMMENT,
+    CP_FUNCTION,
+    CP_PAREN,
+    CP_INCLUDE,
+    CP_SELECTION,
+    CP_STATUS
+};
+
 void cls();
 int regexFind(const char *text, const char *pattern, int *start, int *len);
 extern bool readOnly;
 extern char* fileName;
 extern bool fileSet;
+extern int mode;
+
+extern char* text;
+extern int length;
+extern int cursorX;
+extern int cursorY;
+extern int scrollX;
+extern int scrollY;
+extern int selStart;
+extern int selEnd;
+extern int arrow;
+extern char* statusText;
+extern int statusLength;
 
 void initColors();
 

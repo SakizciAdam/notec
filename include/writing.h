@@ -1,25 +1,15 @@
 #ifndef WRITING_H
 #define WRITING_H
 #include "utils.h"
+#include "draw.h"
 #include <stdbool.h>
 #include <stdio.h>
 
 
-extern char* text;
-extern int length;
-extern int cursorX;
-extern int cursorY;
-extern int scrollX;
-extern int scrollY;
-extern int selStart;
-extern int selEnd;
-extern bool arrow;
 
-void handleKeyW(char c);
 
-void renderW();
 
-void initW();
+
 
 int getMaxLine();
 

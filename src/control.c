@@ -1,11 +1,8 @@
 #include "control.h"
 
-char* statusText;
-int statusLength=0;
 
-void initC(){
-    statusText=malloc(sizeof(char)*200);
-}
+
+
 
 void setStatusText(const char* input){
     strncpy(statusText, input, 199);
@@ -30,7 +27,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
         snprintf(display, sizeof(display), "%s%s", prompt, buffer);
         setStatusText(display);
 
-        renderC();
+        render();
 
         INPUT_RECORD rec;
         DWORD read;
@@ -72,7 +69,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
         char display[256];
         snprintf(display, sizeof(display), "%s%s", prompt, buffer);
         setStatusText(display);
-        renderC();
+        render();
 
         char c;
         if (read(STDIN_FILENO, &c, 1) > 0) {
@@ -95,69 +92,11 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
 
 
 #endif
-void renderC() {
-    int rows, columns;
-    getmaxyx(stdscr, rows, columns);
-    int textRows = rows - 1;
 
-    erase();
-
-    int charIndex = 0;
-    int currentLine = 0;
-    while (currentLine < scrollY && charIndex < length) {
-        if (text[charIndex] == '\n') currentLine++;
-        charIndex++;
-    }
-
-    for (int y = 0; y < textRows; y++) {
-        if (charIndex >= length) break;
-
-        int lineStartIndex = charIndex;
-        int lineLength = 0;
-        while (lineStartIndex + lineLength < length && text[lineStartIndex + lineLength] != '\n') 
-            lineLength++;
-
-        int renderStartIndex = lineStartIndex + scrollX;
-        int renderEndIndex = lineStartIndex + lineLength;
-        int charsToRender = renderEndIndex - renderStartIndex;
-        if (charsToRender > columns) charsToRender = columns;
-
-        for (int i = 0; i < charsToRender; i++) {
-            int idx = renderStartIndex + i;
-
-            if (selStart != -1 && selEnd != -1) {
-                int start = selStart < selEnd ? selStart : selEnd;
-                int end   = selStart > selEnd ? selStart : selEnd;
-                if (idx >= start && idx < end) attron(A_REVERSE);
-            }
-
-            mvaddch(y, i, text[idx]);
-
-            if (selStart != -1 && selEnd != -1) attroff(A_REVERSE);
-        }
-
-        charIndex = lineStartIndex + lineLength;
-        if (charIndex < length && text[charIndex] == '\n') charIndex++;
-    }
-
-    move(rows - 1, 0);
-    clrtoeol();
-    printw("notec | v1.0 | %s", statusText);
-
-    int cx = 0, cy = 0;
-    int finalIndex = (selEnd != -1) ? selEnd : getTextIndex();
-    for (int i = 0; i < finalIndex && i < length; i++) {
-        if (text[i] == '\n') { cy++; cx = 0; }
-        else cx++;
-    }
-    move(cy - scrollY, cx - scrollX);
-
-    refresh();
-}
 
 void reset(){
     setStatusText(" ");
-    renderC();
+    render();
 
 }
 
@@ -273,92 +212,7 @@ void selectAll() {
     selStart = 0;
     selEnd = length;
 }
-#ifdef _WIN32
-void copySelection() {
-    if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
-    setStatusText("Error");
-    int start = selStart < selEnd ? selStart : selEnd;
-    int end = selStart > selEnd ? selStart : selEnd;
-    int lengthToCopy = end - start;
-    if (lengthToCopy <= 0) return;
-    if (!OpenClipboard(NULL)) return;
-    EmptyClipboard();
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, lengthToCopy + 1);
-    if (!hMem) { CloseClipboard(); return; }
-    memcpy(GlobalLock(hMem), text + start, lengthToCopy);
-    GlobalUnlock(hMem);
-    SetClipboardData(CF_TEXT, hMem);
-    CloseClipboard();
-    setStatusText("Copied");
-}
 
-void pasteClipboard() {
-    if (!OpenClipboard(NULL)) { setStatusText("Error"); return; }
-    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-    if (!hData) { setStatusText("No text in clipboard"); return; }
-    wchar_t *wText = (wchar_t *)GlobalLock(hData);
-    if (!wText) { setStatusText("Error"); CloseClipboard(); return; }
-    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wText, -1, NULL, 0, NULL, NULL);
-    char *buffer = malloc(sizeNeeded);
-    if (buffer) {
-        setStatusText("Pasted");
-        int oldIndex = getTextIndex();
-        WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
-        for (int i = 0; i < strlen(buffer); i++) {
-            char ch = buffer[i];
-            if ((int)ch == 13) {}
-            else if ((int)ch == 9) handleKeyW('#');
-            else if ((unsigned char)ch <= 127) handleKeyW(ch);
-        }
-        goToIndex(oldIndex);
-    }
-    GlobalUnlock(hData);
-    CloseClipboard();
-}
-#else
-void copySelection() {
-    if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
-
-    int start = selStart < selEnd ? selStart : selEnd;
-    int end   = selStart > selEnd ? selStart : selEnd;
-    int lengthToCopy = end - start;
-    if (lengthToCopy <= 0) return;
-
-    char *buffer = malloc(lengthToCopy + 1);
-    if (!buffer) { setStatusText("Error allocating memory"); return; }
-    memcpy(buffer, text + start, lengthToCopy);
-    buffer[lengthToCopy] = '\0';
-
-    FILE *pipe = popen("xclip -selection clipboard", "w");
-    if (!pipe) { setStatusText("Error: xclip not available"); free(buffer); return; }
-    fwrite(buffer, 1, lengthToCopy, pipe);
-    pclose(pipe);
-    free(buffer);
-
-    setStatusText("Copied");
-}
-
-void pasteClipboard() {
-    FILE *pipe = popen("xclip -selection clipboard -o", "r");
-    if (!pipe) { setStatusText("Error: xclip not available"); return; }
-
-    char buffer[4096];
-    int oldIndex = getTextIndex();
-    setStatusText("Pasted");
-
-    while (fgets(buffer, sizeof(buffer), pipe)) {
-        for (int i = 0; i < strlen(buffer); i++) {
-            char ch = buffer[i];
-            if ((int)ch == 13) {} 
-            else if ((int)ch == 9) handleKeyW('#');
-            else if ((unsigned char)ch <= 127) handleKeyW(ch);
-        }
-    }
-    pclose(pipe);
-
-    goToIndex(oldIndex);
-}
-#endif
 void goToLine() {
     reset();
     char input[20];
@@ -429,23 +283,4 @@ void findText() {
         cursorX += strlen(findText);
     }
     free(subst);
-}
-
-void handleKeyC(char c) {
-    char lower = tolower(c);
-    arrow = false;
-
-    if (lower == 'q') exit(0);
-    if (lower == 's') toggleSelectionMode();
-    else if ((int)c == UP_ARROW) moveCursorOrSelectionUp();
-    else if ((int)c == DOWN_ARROW) moveCursorOrSelectionDown();
-    else if ((int)c == RIGHT_ARROW) moveCursorOrSelectionRight();
-    else if ((int)c == LEFT_ARROW) moveCursorOrSelectionLeft();
-    else if (lower == 'p') clearSelection();
-    else if (lower == 'a') selectAll();
-    else if (lower == 'c') copySelection();
-    else if (lower == 'v') pasteClipboard();
-    else if (lower == 'g') goToLine();
-    else if (lower == 'w') saveFile();
-    else if (lower == 'f') findText();
 }
