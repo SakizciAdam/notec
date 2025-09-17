@@ -13,7 +13,7 @@ void switch_mode(){
 #ifdef _WIN32
 void copy_clipboard() {
     if (selStart == -1 || selEnd == -1 || selStart == selEnd) return;
-    setStatusText("Error");
+    set_status_text("Error");
     int start = selStart < selEnd ? selStart : selEnd;
     int end = selStart > selEnd ? selStart : selEnd;
     int lengthToCopy = end - start;
@@ -26,20 +26,20 @@ void copy_clipboard() {
     GlobalUnlock(hMem);
     SetClipboardData(CF_TEXT, hMem);
     CloseClipboard();
-    setStatusText("Copied");
+    set_status_text("Copied");
 }
 
 void paste_clipboard() {
-    if (!OpenClipboard(NULL)) { setStatusText("Error"); return; }
+    if (!OpenClipboard(NULL)) { set_status_text("Error"); return; }
     HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-    if (!hData) { setStatusText("No text in clipboard"); return; }
+    if (!hData) { set_status_text("No text in clipboard"); return; }
     wchar_t *wText = (wchar_t *)GlobalLock(hData);
-    if (!wText) { setStatusText("Error"); CloseClipboard(); return; }
+    if (!wText) { set_status_text("Error"); CloseClipboard(); return; }
     int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wText, -1, NULL, 0, NULL, NULL);
     char *buffer = malloc(sizeNeeded);
     if (buffer) {
-        setStatusText("Pasted");
-        int oldIndex = getTextIndex();
+        set_status_text("Pasted");
+        int oldIndex = get_text_index();
         WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
         for (int i = 0; i < strlen(buffer); i++) {
             char ch = buffer[i];
@@ -47,7 +47,7 @@ void paste_clipboard() {
             else if ((int)ch == 9) on_key('#',WRITING_MODE);
             else if ((unsigned char)ch <= 127) on_key(ch,WRITING_MODE);
         }
-        goToIndex(oldIndex);
+        goto_index(oldIndex);
     }
     GlobalUnlock(hData);
     CloseClipboard();
@@ -62,26 +62,26 @@ void copy_clipboard() {
     if (lengthToCopy <= 0) return;
 
     char *buffer = malloc(lengthToCopy + 1);
-    if (!buffer) { setStatusText("Error allocating memory"); return; }
+    if (!buffer) { set_status_text("Error allocating memory"); return; }
     memcpy(buffer, text + start, lengthToCopy);
     buffer[lengthToCopy] = '\0';
 
     FILE *pipe = popen("xclip -selection clipboard", "w");
-    if (!pipe) { setStatusText("Error: xclip not available"); free(buffer); return; }
+    if (!pipe) { set_status_text("Error: xclip not available"); free(buffer); return; }
     fwrite(buffer, 1, lengthToCopy, pipe);
     pclose(pipe);
     free(buffer);
 
-    setStatusText("Copied");
+    set_status_text("Copied");
 }
 
 void paste_clipboard() {
     FILE *pipe = popen("xclip -selection clipboard -o", "r");
-    if (!pipe) { setStatusText("Error: xclip not available"); return; }
+    if (!pipe) { set_status_text("Error: xclip not available"); return; }
 
     char buffer[4096];
-    int oldIndex = getTextIndex();
-    setStatusText("Pasted");
+    int oldIndex = get_text_index();
+    set_status_text("Pasted");
 
     while (fgets(buffer, sizeof(buffer), pipe)) {
         for (int i = 0; i < strlen(buffer); i++) {
@@ -93,7 +93,7 @@ void paste_clipboard() {
     }
     pclose(pipe);
 
-    goToIndex(oldIndex);
+    goto_index(oldIndex);
 }
 #endif
 
@@ -110,7 +110,7 @@ void on_key(char c,int md){
         if ((int)c == -32) { arrow = true; return; }
         if (readOnly) return;
 
-        int idx = getTextIndex();
+        int idx = get_text_index();
 
         if ((int)c == BACKSPACE) {
             if (selStart != -1 && selEnd != -1 && selStart != selEnd) {
@@ -125,7 +125,7 @@ void on_key(char c,int md){
                 text = realloc(text, length + 1);
                 if (text) text[length] = '\0';
 
-                goToIndex(start);
+                goto_index(start);
 
                 selStart = selEnd = -1;
             } else if (idx > 0 && length > 0) {
@@ -139,7 +139,7 @@ void on_key(char c,int md){
                 if (cursorX > 0) cursorX--;
                 else if (cursorY > 0) {
                     cursorY--;
-                    cursorX = getLineLength(cursorY);
+                    cursorX = get_line_length(cursorY);
                 }
             }
             return;
@@ -149,28 +149,28 @@ void on_key(char c,int md){
         #endif
         if (arrow) {
             switch ((int)c) {
-                case DOWN_ARROW: moveCursorDown(); return;
-                case UP_ARROW: moveCursorUp(); return;
-                case LEFT_ARROW: moveCursorLeft(); return;
-                case RIGHT_ARROW: moveCursorRight(); return;
+                case DOWN_ARROW: move_cursor_down(); return;
+                case UP_ARROW: move_cursor_up(); return;
+                case LEFT_ARROW: move_cursor_left(); return;
+                case RIGHT_ARROW: move_cursor_right(); return;
             }
         }
 
         switch ((int)c) {
             case 9: 
                 for (int i = 0; i < 4; i++) {
-                    addCharAt(' ', idx++);
+                    add_char_at(' ', idx++);
                     cursorX++;
                 }
                 break;
             case RETURN:
-                addCharAt('\n', idx);
+                add_char_at('\n', idx);
                 cursorY++;
                 cursorX = 0;
                 break;
             default:
                 if ((unsigned char)c <= 127) {
-                    addCharAt(c, idx);
+                    add_char_at(c, idx);
                     cursorX++;
                 }
                 break;
@@ -180,17 +180,17 @@ void on_key(char c,int md){
         arrow = false;
 
         if (lower == 'q') exit(0);
-        if (lower == 's') toggleSelectionMode();
-        else if ((int)c == UP_ARROW) moveCursorOrSelectionUp();
-        else if ((int)c == DOWN_ARROW) moveCursorOrSelectionDown();
-        else if ((int)c == RIGHT_ARROW) moveCursorOrSelectionRight();
-        else if ((int)c == LEFT_ARROW) moveCursorOrSelectionLeft();
-        else if (lower == 'p') clearSelection();
-        else if (lower == 'a') selectAll();
+        if (lower == 's') toggle_selection_mode();
+        else if ((int)c == UP_ARROW) move_cursor_or_selection_up();
+        else if ((int)c == DOWN_ARROW) move_cursor_or_selection_down();
+        else if ((int)c == RIGHT_ARROW) move_cursor_or_selection_right();
+        else if ((int)c == LEFT_ARROW) move_cursor_or_selection_left();
+        else if (lower == 'p') clear_selection();
+        else if (lower == 'a') select_all();
         else if (lower == 'c') copy_clipboard();
         else if (lower == 'v') paste_clipboard();
-        else if (lower == 'g') goToLine();
-        else if (lower == 'w') saveFile();
-        else if (lower == 'f') findText();
+        else if (lower == 'g') goto_line();
+        else if (lower == 'w') save_file();
+        else if (lower == 'f') find_text();
     }
 }

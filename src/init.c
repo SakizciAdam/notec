@@ -2,7 +2,7 @@
 #include "control.h"
 
 void init(){
-    initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); initColors();
+    initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); init_colors();
     mode=WRITING_MODE;
     selStart=-1;
     selEnd=-1;
@@ -13,7 +13,7 @@ void init(){
     statusText=malloc(sizeof(char)*200);
     fileName = NULL;
     fileSet = false;
-    setStatusText(":)");
+    set_status_text(":)");
 }
 
 void arg_parse(int argc, char **argv){

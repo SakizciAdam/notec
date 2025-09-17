@@ -2,7 +2,7 @@
 
 
 
-int getTextIndex(){
+int get_text_index(){
     int x=0;
     int y=0;
     for(int i=0;i<length;i++){
@@ -20,7 +20,7 @@ int getTextIndex(){
     return length;
 }
 
-void goToIndex(int index) {
+void goto_index(int index) {
     int x = 0, y = 0;
     for (int i = 0; i < index && i < length; i++) {
         if (text[i] == '\n') {
@@ -34,7 +34,7 @@ void goToIndex(int index) {
     cursorY = y;
 }
 
-int getLineLength(int lineIndex){
+int get_line_length(int lineIndex){
     int currentLine = 0;
     int lineLength = 0;
     int i = 0;
@@ -58,7 +58,7 @@ int getLineLength(int lineIndex){
 
 
 
-void addSubstringAt(const char* substr, int index) {
+void add_substring_at(const char* substr, int index) {
     if (!substr || index < 0 || index > length) {
         return;
     }
@@ -80,7 +80,7 @@ void addSubstringAt(const char* substr, int index) {
 }
 
 
-void addCharAt(char c,int index){
+void add_char_at(char c,int index){
     if (index < 0 || index > length) {
         return;
     }
@@ -102,21 +102,21 @@ void addCharAt(char c,int index){
 
 
 
-void moveCursorDown(){
-    if(cursorY+1==getMaxLine()){
-        cursorX=getLineLength(cursorY);
+void move_cursor_down(){
+    if(cursorY+1==get_max_line()){
+        cursorX=get_line_length(cursorY);
         return;
     }
     cursorY++;
-    if(cursorX>getLineLength(cursorY)){
-        cursorX=getLineLength(cursorY);
+    if(cursorX>get_line_length(cursorY)){
+        cursorX=get_line_length(cursorY);
     }
     arrow=false;
 }
 
-void moveCursorUp(){
+void move_cursor_up(){
     if(cursorY>0){
-        int previousLineLength=getLineLength(cursorY-1);
+        int previousLineLength=get_line_length(cursorY-1);
 
         if(cursorX<=previousLineLength){
             cursorY--;
@@ -128,9 +128,9 @@ void moveCursorUp(){
     arrow=false;
 }
 
-void moveCursorRight(){
-    if(cursorX==getLineLength(cursorY)){
-        if(cursorY+1>=getMaxLine()){
+void move_cursor_right(){
+    if(cursorX==get_line_length(cursorY)){
+        if(cursorY+1>=get_max_line()){
             return;
         }
         cursorY++;
@@ -142,12 +142,12 @@ void moveCursorRight(){
     arrow=false;
 }
 
-void moveCursorLeft(){
+void move_cursor_left(){
     cursorX--;
     if(cursorX<0){
         if(cursorY>0){
             cursorY--;
-            cursorX=getLineLength(cursorY);
+            cursorX=get_line_length(cursorY);
         } else {
             cursorX=0;
         }

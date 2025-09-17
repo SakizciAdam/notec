@@ -39,7 +39,7 @@ bool kbhit()
 #endif
 
 
-void initColors() {
+void init_colors() {
     start_color();
     use_default_colors();
     init_pair(CP_DEFAULT,   COLOR_WHITE,  -1);

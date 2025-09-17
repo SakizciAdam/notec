@@ -4,17 +4,17 @@
 
 
 
-void setStatusText(const char* input){
+void set_status_text(const char* input){
     strncpy(statusText, input, 199);
     statusText[199] = '\0'; // Ensure null-termination
     statusLength = strlen(statusText);
 }
 #ifdef _WIN32
 
-void getInput(const char* prompt, char* buffer, int bufferSize) {
+void get_input(const char* prompt, char* buffer, int bufferSize) {
     int len = 0;
     buffer[0] = '\0';
-    setStatusText(prompt);
+    set_status_text(prompt);
 
     HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode;
@@ -25,7 +25,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
     while (!done) {
         char display[256];
         snprintf(display, sizeof(display), "%s%s", prompt, buffer);
-        setStatusText(display);
+        set_status_text(display);
 
         render();
 
@@ -53,7 +53,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
     SetConsoleMode(hIn, mode);
 }
 #else
-void getInput(const char* prompt, char* buffer, int bufferSize) {
+void get_input(const char* prompt, char* buffer, int bufferSize) {
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);     
     newt = oldt;
@@ -68,7 +68,7 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
   
         char display[256];
         snprintf(display, sizeof(display), "%s%s", prompt, buffer);
-        setStatusText(display);
+        set_status_text(display);
         render();
 
         char c;
@@ -95,12 +95,12 @@ void getInput(const char* prompt, char* buffer, int bufferSize) {
 
 
 void reset(){
-    setStatusText(" ");
+    set_status_text(" ");
     render();
 
 }
 
-void moveSelectionUpLine() {
+void move_selection_up_line() {
     if (selStart == -1) return; 
     int x = 0, y = 0;
     for (int i = 0; i < selEnd && i < length; i++) {
@@ -130,7 +130,7 @@ void moveSelectionUpLine() {
     selEnd = newIndex; 
 }
 
-void moveSelectionDownLine() {
+void move_selection_down_line() {
     if (selStart == -1) return;  
     int x = 0, y = 0;
     for (int i = 0; i < selEnd && i < length; i++) {
@@ -142,7 +142,7 @@ void moveSelectionDownLine() {
         }
     }
 
-    if (y >= getMaxLine() - 1) return; 
+    if (y >= get_max_line() - 1) return; 
     y++; 
 
     int newIndex = 0;
@@ -162,64 +162,64 @@ void moveSelectionDownLine() {
 
 bool selectionMode = false;
 
-void toggleSelectionMode() {
+void toggle_selection_mode() {
     selectionMode = !selectionMode;
     if (!selectionMode) selStart = selEnd = -1;
-    setStatusText(selectionMode ? "Selection mode" : "");
+    set_status_text(selectionMode ? "Selection mode" : "");
 }
 
-void moveCursorOrSelectionUp() {
+void move_cursor_or_selection_up() {
  
     if (selectionMode) {
-        if (selStart == -1) selStart = selEnd = getTextIndex();
-        moveSelectionUpLine();
-        setStatusText("Selected");
-    } else moveCursorUp();
+        if (selStart == -1) selStart = selEnd = get_text_index();
+        move_selection_up_line();
+        set_status_text("Selected");
+    } else move_cursor_up();
 }
 
-void moveCursorOrSelectionDown() {
+void move_cursor_or_selection_down() {
     if (selectionMode) {
-        if (selStart == -1) selStart = selEnd = getTextIndex();
-        moveSelectionDownLine();
-        setStatusText("Selected");
-    } else moveCursorDown();
+        if (selStart == -1) selStart = selEnd = get_text_index();
+        move_selection_down_line();
+        set_status_text("Selected");
+    } else move_cursor_down();
 }
 
-void moveCursorOrSelectionLeft() {
+void move_cursor_or_selection_left() {
     if (selectionMode) {
-        if (selStart == -1 && selEnd == -1) selStart = getTextIndex() - 1, selEnd = selStart + 2;
+        if (selStart == -1 && selEnd == -1) selStart = get_text_index() - 1, selEnd = selStart + 2;
         selEnd--;
-        if (selEnd == selStart) selStart = selEnd = -1, setStatusText("Unselected");
-        else setStatusText("Selected");
-    } else moveCursorLeft();
+        if (selEnd == selStart) selStart = selEnd = -1, set_status_text("Unselected");
+        else set_status_text("Selected");
+    } else move_cursor_left();
 }
 
-void moveCursorOrSelectionRight() {
+void move_cursor_or_selection_right() {
     if (selectionMode) {
-        if (selStart == -1 && selEnd == -1) selStart = selEnd = getTextIndex();
+        if (selStart == -1 && selEnd == -1) selStart = selEnd = get_text_index();
         selEnd++;
         if (selEnd >= length - 1) selEnd = length - 1;
-        setStatusText("Selected");
-    } else moveCursorRight();
+        set_status_text("Selected");
+    } else move_cursor_right();
 }
 
-void clearSelection() {
+void clear_selection() {
     selStart = selEnd = -1;
-    setStatusText("Unselected");
+    set_status_text("Unselected");
 }
 
-void selectAll() {
+void select_all() {
     selStart = 0;
     selEnd = length;
 }
 
-void goToLine() {
+void goto_line() {
     reset();
     char input[20];
-    getInput("Go to: ", input, sizeof(input));
+    get_input("Go to: ", input, sizeof(input));
     int lineNumber = atoi(input);
-    if (lineNumber > getMaxLine() || lineNumber <= 0) {
-        setStatusText("Line does not exist");
+    if (lineNumber > get_max_line() || lineNumber <= 0) {
+        set_status_text("Line does not exist");
         return;
     }
     cursorY = lineNumber - 1;
@@ -227,17 +227,17 @@ void goToLine() {
 }
 
 
-void saveFile() {
+void save_file() {
     reset();
     if (fileSet) {
         char resp[4] = "";
-        getInput("Save to current file? y/N: ", resp, sizeof(resp));
+        get_input("Save to current file? y/N: ", resp, sizeof(resp));
         if (!(resp[0] == 'y' || resp[0] == 'Y')) fileSet = false;
     }
 
     if (!fileSet) {
         char saveLocation[200];
-        getInput("Save to: ", saveLocation, sizeof(saveLocation));
+        get_input("Save to: ", saveLocation, sizeof(saveLocation));
         //printf("\nSaving to %s\n", saveLocation);
         fileSet = true;
         if (fileName == NULL) fileName = malloc(strlen(saveLocation) + 1);
@@ -249,37 +249,37 @@ void saveFile() {
     if (fptr != NULL) {
         fclose(fptr);
         char resp[4] = "";
-        getInput("File exists. Overwrite y/N: ", resp, sizeof(resp));
+        get_input("File exists. Overwrite y/N: ", resp, sizeof(resp));
         if (!(resp[0] == 'y' || resp[0] == 'Y')) return;
     }
 
     fptr = fopen(fileName, "w");
     if (!fptr) {
-        setStatusText("Error opening file");
+        set_status_text("Error opening file");
         return;
     }
 
     if (length > 0) fprintf(fptr, "%s", text);
     fclose(fptr);
-    setStatusText("File saved");
+    set_status_text("File saved");
 }
 
 
 
-void findText() {
+void find_text() {
     char findText[256];
-    getInput("Find: ", findText, sizeof(findText));
-    int index = getTextIndex();
+    get_input("Find: ", findText, sizeof(findText));
+    int index = get_text_index();
     char* subst = malloc(length - index + 1);
     strncpy(subst, text + index, length - index);
     subst[length - index] = '\0';
     char* result = strstr(subst, findText);
     if(result == NULL){
-        setStatusText("Not found");
+        set_status_text("Not found");
     } else {
         int position = result - subst + index;
-        setStatusText("Found");
-        goToIndex(position);
+        set_status_text("Found");
+        goto_index(position);
         cursorX += strlen(findText);
     }
     free(subst);

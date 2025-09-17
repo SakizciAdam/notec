@@ -3,7 +3,7 @@
 #include "utils.h"
 
 
-int getMaxLine();
+int get_max_line();
 void render();
 
 #endif

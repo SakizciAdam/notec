@@ -77,6 +77,6 @@ extern int arrow;
 extern char* statusText;
 extern int statusLength;
 
-void initColors();
+void init_colors();
 
 #endif // UTILS_H

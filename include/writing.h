@@ -11,18 +11,18 @@
 
 
 
-int getMaxLine();
+int get_max_line();
 
-int getTextIndex();
+int get_text_index();
 
-void goToIndex(int index);
+void goto_index(int index);
 
-void moveCursorLeft();
+void move_cursor_left();
 
-void moveCursorRight();
+void move_cursor_right();
 
-void moveCursorUp();
+void move_cursor_up();
 
-void moveCursorDown();
+void move_cursor_down();
 
 #endif // WRITING_H

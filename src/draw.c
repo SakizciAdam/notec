@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 
-int getMaxLine(){
+int get_max_line(){
     int lines = 0;
     for(int i=0; i < length; i++){
         if(text[i] == '\n'){
@@ -276,12 +276,12 @@ void render() {
         float sizeKB = (float)length / 1024.0f;
         if (fileSet && fileName) {
             snprintf(statusBar, sizeof(statusBar), "WRITING | Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB | %s%s",
-                     cursorY+1, cursorX+1, getMaxLine(), sizeKB,
+                     cursorY+1, cursorX+1, get_max_line(), sizeKB,
                      readOnly ? "Readonly | " : "",
                      fileName);
         } else {
             snprintf(statusBar, sizeof(statusBar), "WRITING | Line: %d, Col: %d | Total Lines: %d | Size: %.1f kB%s",
-                     cursorY+1, cursorX+1, getMaxLine(), sizeKB,
+                     cursorY+1, cursorX+1, get_max_line(), sizeKB,
                      readOnly ? " | Readonly" : "");
         }
     }
