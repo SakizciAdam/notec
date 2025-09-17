@@ -9,7 +9,7 @@
 
 
 
-
+void add_char_at(char c,int index);
 
 int get_max_line();
 
@@ -24,5 +24,7 @@ void move_cursor_right();
 void move_cursor_up();
 
 void move_cursor_down();
+
+int get_line_length(int lineIndex);
 
 #endif // WRITING_H

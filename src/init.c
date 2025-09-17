@@ -1,5 +1,5 @@
 #include "init.h"
-#include "control.h"
+
 
 void init(){
     initscr(); cbreak(); noecho(); keypad(stdscr, TRUE); init_colors();
