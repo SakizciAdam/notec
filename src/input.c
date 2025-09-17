@@ -43,7 +43,7 @@ void paste_clipboard() {
         WideCharToMultiByte(CP_UTF8, 0, wText, -1, buffer, sizeNeeded, NULL, NULL);
         for (int i = 0; i < strlen(buffer); i++) {
             char ch = buffer[i];
-            if ((int)ch == RETURN) {on_key('\n',WRITING_MODE);}
+            if ((int)ch == '\n') {on_key(RETURN,WRITING_MODE);}
             else if ((int)ch == 9) on_key('#',WRITING_MODE);
             else if ((unsigned char)ch <= 127) on_key(ch,WRITING_MODE);
         }
@@ -86,7 +86,7 @@ void paste_clipboard() {
     while (fgets(buffer, sizeof(buffer), pipe)) {
         for (int i = 0; i < strlen(buffer); i++) {
             char ch = buffer[i];
-            if ((int)ch == 13) {} 
+            if ((int)ch == '\n') {on_key(RETURN,WRITING_MODE);}
             else if ((int)ch == 9) on_key('#',WRITING_MODE);
             else if ((unsigned char)ch <= 127) on_key(ch,WRITING_MODE);
         }
