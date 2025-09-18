@@ -34,7 +34,7 @@ void render() {
         "float","double","uint","int32","short","ushort","long","let","var","const",
         "switch","case","break","continue","default","sizeof","do","enum","static",
         "extern","inline","signed","unsigned","goto","null","NULL","ifdef","endif",
-        "true","True","false","False","boolean","bool",
+        "true","True","false","False","boolean","bool","define","ifndef"
     };
     const int nKeywords = sizeof(keywords) / sizeof(keywords[0]);
 
