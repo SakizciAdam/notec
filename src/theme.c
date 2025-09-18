@@ -30,7 +30,18 @@ void set_color_bg(short id,const char *fg,const char *bg){
 
 }
 
-
+void set_default_theme(){
+    set_color(CP_KEYWORD, "#e88eff");
+    set_color(CP_DEFAULT, "#ffffff");
+    set_color(CP_FUNCTION, "#4ff9ff");
+    set_color(CP_COMMENT, "#87af87");
+    set_color(CP_STRING, "#5fff5f");
+    set_color(CP_CHAR, "#ff9bf7");
+    set_color(CP_NUMBER, "#f7ce5e");
+    set_color(CP_PAREN, "#8dffa0");
+    set_color_bg(CP_SELECTION, "#ffffff","#3897fc");
+    set_color_bg(CP_STATUS, "#000000","#ffffff");
+}
 
 int load_theme(const char *filename) {
     FILE *f = fopen(filename, "r");
@@ -110,5 +121,6 @@ void init_colors() {
     if(load_theme(strcat(s,"/.config/notec/theme.conf"))==0){
         return;
     }
+    set_default_theme();
     #endif
 }

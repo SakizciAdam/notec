@@ -37,6 +37,8 @@ enum {
     CP_STATUS=10
 };
 
+void set_default_theme();
+
 int hex_to_rgb(const char *hex, short *r, short *g, short *b);
 
 void set_color(short id,const char *hex);
@@ -46,5 +48,6 @@ void set_color_bg(short id,const char *fg,const char *bg);
 int load_theme(const char *filename);
 
 void init_colors();
+
 
 #endif
