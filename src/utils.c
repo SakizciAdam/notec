@@ -20,11 +20,7 @@ char* statusText;
 int statusLength=0;
 
 
-void cls() {
-    printf("\033[2J\033[H");
-    fflush(stdout);
 
-}
 #ifndef _WIN32
 bool kbhit()
 {

@@ -50,7 +50,6 @@
 
 
 
-void cls();
 int regexFind(const char *text, const char *pattern, int *start, int *len);
 extern bool readOnly;
 extern char* fileName;
