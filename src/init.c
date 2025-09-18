@@ -51,11 +51,11 @@ void arg_parse(int argc, char **argv) {
                 for (int j = 1; arg[j]; j++) {
                     switch (arg[j]) {
                         case 'v':
-                            printf("notec v1.0 - By SakizciAdam\n"
+                            printf("szci v1.0 - By SakizciAdam\n"
                                    "If you encounter any issues or have a suggestion, "
                                    "please open an issue on GitHub.\n"
                                    "Contributions are always welcome!\n"
-                                   "Thanks for using notec!\n");
+                                   "Thanks for using szci!\n");
                             exit(0);
                             break;
                         case 'r':

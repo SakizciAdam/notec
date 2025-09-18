@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -O2 -g -Iinclude -w
 
-TARGET = notec
+TARGET = szci
 SRCDIR = src
 BUILDDIR = build
 
@@ -40,14 +40,14 @@ ifeq ($(OS),Windows_NT)
 	@echo "Install is not supported on Windows."
 else
 ifeq ($(shell id -u),0)
-	@echo "Installing notec system-wide to $(SYSTEMBIN)/"
+	@echo "Installing szci system-wide to $(SYSTEMBIN)/"
 	mkdir -p $(SYSTEMBIN)
-	install -Dm755 $(TARGET) $(SYSTEMBIN)/notec
+	install -Dm755 $(TARGET) $(SYSTEMBIN)/szci
 	@echo "System-wide installation complete."
 else
 	@mkdir -p $(LOCALBIN)
-	@echo "Installing notec locally to $(LOCALBIN)/"
-	install -Dm755 $(TARGET) $(LOCALBIN)/notec
+	@echo "Installing szci locally to $(LOCALBIN)/"
+	install -Dm755 $(TARGET) $(LOCALBIN)/szci
 	@echo "Local installation complete. Make sure $(LOCALBIN) is in your PATH."
 endif
 endif
@@ -57,13 +57,13 @@ ifeq ($(OS),Windows_NT)
 	@echo "Uninstall is not supported on Windows."
 else
 ifeq ($(shell id -u),0)
-	@echo "Removing system-wide notec from $(SYSTEMBIN)/"
-	rm -f $(SYSTEMBIN)/notec
-	@echo "System-wide notec removed."
+	@echo "Removing system-wide szci from $(SYSTEMBIN)/"
+	rm -f $(SYSTEMBIN)/szci
+	@echo "System-wide szci removed."
 else
-	@echo "Removing local notec from $(LOCALBIN)/"
-	rm -f $(LOCALBIN)/notec
-	@echo "Local notec removed."
+	@echo "Removing local szci from $(LOCALBIN)/"
+	rm -f $(LOCALBIN)/szci
+	@echo "Local szci removed."
 endif
 endif
 

@@ -1,6 +1,6 @@
-# notec
+# szci
 
-Notec is a lightweight, console-based text editor for Windows and Linux.
+szci is a lightweight, console-based text editor for Windows and Linux.
 
 ## Features
 - Simple and fast text editing
@@ -14,20 +14,20 @@ Notec is a lightweight, console-based text editor for Windows and Linux.
 ### Windows
 
 ```bash
-git clone https://github.com/SakizciAdam/notec.git
-cd notec
+git clone https://github.com/SakizciAdam/szci.git
+cd szci
 make
-./notec.exe <pathtofile> [-r/-v]
+./szci.exe <pathtofile> [-r/-v]
 ```
 
 ### Linux
 
 ```bash
-git clone https://github.com/SakizciAdam/notec.git
-cd notec
+git clone https://github.com/SakizciAdam/szci.git
+cd szci
 make
 make install #sudo make install for system wide installation
-notec <pathtofile> [-r/-v] [--theme=path-to-file]
+szci <pathtofile> [-r/-v] [--theme=path-to-file]
 ```
 
 ## Requirements

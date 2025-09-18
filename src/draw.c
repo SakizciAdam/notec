@@ -278,9 +278,9 @@ void render() {
     char statusBar[512];
     if (mode == CONTROL_MODE) {
         if (statusLength > 0 && statusText) {
-            snprintf(statusBar, sizeof(statusBar), "CONTROL | notec | v1.0 | %s", statusText);
+            snprintf(statusBar, sizeof(statusBar), "CONTROL | szci | v1.0 | %s", statusText);
         } else {
-            snprintf(statusBar, sizeof(statusBar), "CONTROL | notec | v1.0");
+            snprintf(statusBar, sizeof(statusBar), "CONTROL | szci | v1.0");
         }
     } else {
         float sizeKB = (float)length / 1024.0f;

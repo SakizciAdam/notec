@@ -118,7 +118,7 @@ void init_colors() {
     init_pair(CP_STATUS,    COLOR_BLACK,  COLOR_WHITE);
     #ifndef _WIN32
     const char* s = getenv("HOME");
-    if(load_theme(strcat(s,"/.config/notec/theme.conf"))==0){
+    if(load_theme(strcat(s,"/.config/szci/theme.conf"))==0){
         return;
     }
     set_default_theme();
