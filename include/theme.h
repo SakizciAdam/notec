@@ -1,7 +1,7 @@
 #ifndef THEME_H
 #define THEME_H
 
-
+#include <string.h>
 #ifdef _WIN32
     #include <windows.h>
     #include <curses.h>
