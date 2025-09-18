@@ -5,6 +5,7 @@ Notec is a lightweight, console-based text editor for Windows and Linux.
 ## Features
 - Simple and fast text editing
 - Syntax highlighting 
+- Custom themes
 - ~100kB size
 - No bloat
 
@@ -16,7 +17,7 @@ Notec is a lightweight, console-based text editor for Windows and Linux.
 git clone https://github.com/SakizciAdam/notec.git
 cd notec
 make
-./notec.exe <pathtofile> [-r/-v]
+./notec.exe <pathtofile> [-r/-v] [--theme=path-to-file]
 ```
 
 ### Linux
@@ -26,7 +27,7 @@ git clone https://github.com/SakizciAdam/notec.git
 cd notec
 make
 make install #sudo make install for system wide installation
-notec <pathtofile> [-r/-v]
+notec <pathtofile> [-r/-v] [--theme=path-to-file]
 ```
 
 ## Requirements

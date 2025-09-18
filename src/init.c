@@ -16,35 +16,60 @@ void init(){
     set_status_text(":)");
 }
 
-void arg_parse(int argc, char **argv){
-
+void arg_parse(int argc, char **argv) {
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
 
         if (arg[0] == '-') {
-            for (int j = 1; arg[j]; j++) {
-                switch (arg[j]) {
-                    case 'v':
-                        printf("notec v1.0 - By SakizciAdam\nIf you encounter any issues or have a suggestion, please open a issue in GitHub.\nContributions are always welcome!\nThanks for using notec!");
-                        exit(0);
-                        break;
-                    case 'r':
-                        readOnly = true;
-                        break;
-                    default:
-                        printf("Unknown option: -%c\n", arg[j]);
+     
+            if (arg[1] == '-') {
+                // --theme=./theme.conf
+                if (strncmp(arg, "--theme=", 8) == 0) {
+                    const char *themePath = arg + 8;
+                    if (themePath && *themePath) {
+                        if(load_theme(themePath)){
+                            printf("Error: Failed to load theme %s\n",themePath);
+                            exit(1);
+                        }
+                    } else {
+                        printf("Error: --theme requires a path\n");
                         exit(1);
+                    }
+                }
+                else {
+                    printf("Unknown option: %s\n", arg);
+                    exit(1);
                 }
             }
-        } else if (!fileSet) {
-            FILE *file;
-            file = fopen(arg, "rb");
+          
+            else {
+                for (int j = 1; arg[j]; j++) {
+                    switch (arg[j]) {
+                        case 'v':
+                            printf("notec v1.0 - By SakizciAdam\n"
+                                   "If you encounter any issues or have a suggestion, "
+                                   "please open an issue on GitHub.\n"
+                                   "Contributions are always welcome!\n"
+                                   "Thanks for using notec!\n");
+                            exit(0);
+                            break;
+                        case 'r':
+                            readOnly = true;
+                            break;
+                        default:
+                            printf("Unknown option: -%c\n", arg[j]);
+                            exit(1);
+                    }
+                }
+            }
+        }
+        else if (!fileSet) {
+            FILE *file = fopen(arg, "rb");
             if (!file) {
                 fileName = malloc(strlen(arg) + 1);
                 strcpy(fileName, arg);
                 fileSet = true;
             } else {
-                
                 fileName = malloc(strlen(arg) + 1);
                 strcpy(fileName, arg);
                 fileSet = true;
@@ -69,7 +94,8 @@ void arg_parse(int argc, char **argv){
                     new_text[len] = '\0';
                     int j = 0;
                     for (int k = 0; k < len; k++) {
-                        if (new_text[k] == '\r' && k + 1 < len && new_text[k + 1] == '\n') continue;
+                        if (new_text[k] == '\r' && k + 1 < len && new_text[k + 1] == '\n')
+                            continue;
                         new_text[j++] = new_text[k];
                     }
                     new_text[j] = '\0';
@@ -77,11 +103,10 @@ void arg_parse(int argc, char **argv){
                     free(text);
                     text = new_text;
                 }
-
+                fclose(file);
             }
-
-            fclose(file);
-        } else {
+        }
+        else {
             printf("Ignoring extra argument: %s\n", arg);
         }
     }

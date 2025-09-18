@@ -31,6 +31,9 @@
     #include <termios.h>  
     #include <ncurses.h>
     #include <sys/ioctl.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
     
     #define RETURN 10
     #define BACKSPACE 7
@@ -46,16 +49,16 @@
 
 enum {
     CP_DEFAULT = 1,
-    CP_KEYWORD,
-    CP_STRING,
-    CP_CHAR,
-    CP_NUMBER,
-    CP_COMMENT,
-    CP_FUNCTION,
-    CP_PAREN,
-    CP_INCLUDE,
-    CP_SELECTION,
-    CP_STATUS
+    CP_KEYWORD=2,
+    CP_STRING=3,
+    CP_CHAR=4,
+    CP_NUMBER=5,
+    CP_COMMENT=6,
+    CP_FUNCTION=7,
+    CP_PAREN=8,
+    CP_INCLUDE=9,
+    CP_SELECTION=11,
+    CP_STATUS=10
 };
 
 void cls();
@@ -78,5 +81,7 @@ extern char* statusText;
 extern int statusLength;
 
 void init_colors();
+
+int load_theme(const char* filename);
 
 #endif // UTILS_H
