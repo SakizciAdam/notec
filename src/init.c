@@ -26,6 +26,11 @@ void arg_parse(int argc, char **argv) {
                 // --theme=./theme.conf
                 if (strncmp(arg, "--theme=", 8) == 0) {
                     const char *themePath = arg + 8;
+
+                    #ifdef _WIN32
+                    printf("Error: Custom themes are not supported on Windows");
+                    exit(1);
+                    #endif
                     if (themePath && *themePath) {
                         if(load_theme(themePath)){
                             printf("Error: Failed to load theme %s\n",themePath);
