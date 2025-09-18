@@ -33,7 +33,8 @@ void render() {
         "int","char","if","else","for","while","return","void","struct","typedef",
         "float","double","uint","int32","short","ushort","long","let","var","const",
         "switch","case","break","continue","default","sizeof","do","enum","static",
-        "extern","inline","signed","unsigned","goto"
+        "extern","inline","signed","unsigned","goto","null","NULL","ifdef","endif",
+        "true","True","false","False","boolean","bool",
     };
     const int nKeywords = sizeof(keywords) / sizeof(keywords[0]);
 
@@ -187,6 +188,15 @@ void render() {
                 }
                 i += kwlen;
                 continue;
+            } else if(c=='#'){
+                int tokenColor = CP_PAREN;
+                int selected = hasSelection && (absIdx >= selA && absIdx < selB);
+                int pair = selected ? CP_SELECTION : tokenColor;
+                attron(COLOR_PAIR(pair));
+                mvaddch(y, i, c);
+                attroff(COLOR_PAIR(pair));
+                i++;
+                continue;
             }
 
             if (isalpha((unsigned char)c) || c == '_') {
@@ -224,7 +234,7 @@ void render() {
                 continue;
             }
 
-            if ( (c == '(') || (c == ')') || (c == '{') || (c == '}') || (c == '[') || (c == ']') || (c == '=') || (c == '<')|| (c == '>')|| (c == '!')) {
+            if ( (c == '+') ||(c == '-') ||(c == '(') || (c == ')') || (c == '{') || (c == '}') || (c == '[') || (c == ']') || (c == '=') || (c == '<')|| (c == '>')|| (c == '!')) {
                 int tokenColor = CP_PAREN;
                 int selected = hasSelection && (absIdx >= selA && absIdx < selB);
                 int pair = selected ? CP_SELECTION : tokenColor;
