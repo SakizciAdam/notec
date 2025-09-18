@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "theme.h"
 
 
 #define WRITING_MODE 0
@@ -47,19 +48,7 @@
     bool kbhit();
 #endif
 
-enum {
-    CP_DEFAULT = 1,
-    CP_KEYWORD=2,
-    CP_STRING=3,
-    CP_CHAR=4,
-    CP_NUMBER=5,
-    CP_COMMENT=6,
-    CP_FUNCTION=7,
-    CP_PAREN=8,
-    CP_INCLUDE=9,
-    CP_SELECTION=11,
-    CP_STATUS=10
-};
+
 
 void cls();
 int regexFind(const char *text, const char *pattern, int *start, int *len);
@@ -80,8 +69,5 @@ extern int arrow;
 extern char* statusText;
 extern int statusLength;
 
-void init_colors();
-
-int load_theme(const char* filename);
 
 #endif // UTILS_H
