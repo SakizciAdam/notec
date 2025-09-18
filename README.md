@@ -17,7 +17,7 @@ Notec is a lightweight, console-based text editor for Windows and Linux.
 git clone https://github.com/SakizciAdam/notec.git
 cd notec
 make
-./notec.exe <pathtofile> [-r/-v] [--theme=path-to-file]
+./notec.exe <pathtofile> [-r/-v]
 ```
 
 ### Linux
