@@ -5,8 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
-
+extern int saved;
 
 
 void add_char_at(char c,int index);

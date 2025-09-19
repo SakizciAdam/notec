@@ -1,6 +1,6 @@
 #include "writing.h"
 
-
+int saved=0;
 
 int get_text_index(){
     int x=0;

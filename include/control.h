@@ -23,6 +23,7 @@ void move_cursor_or_selection_down();
 
 void toggle_selection_mode();
 
+void quit();
 
 
 void goto_line();

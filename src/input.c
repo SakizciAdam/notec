@@ -171,6 +171,7 @@ void on_key(char c,int md){
             default:
                 if ((unsigned char)c <= 127) {
                     add_char_at(c, idx);
+                    saved=0;
                     cursorX++;
                 }
                 break;
@@ -179,7 +180,7 @@ void on_key(char c,int md){
         char lower = tolower(c);
         arrow = false;
 
-        if (lower == 'q') exit(0);
+        if (lower == 'q') quit();
         if (lower == 's') toggle_selection_mode();
         else if ((int)c == UP_ARROW) move_cursor_or_selection_up();
         else if ((int)c == DOWN_ARROW) move_cursor_or_selection_down();

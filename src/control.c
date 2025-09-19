@@ -262,9 +262,28 @@ void save_file() {
     if (length > 0) fprintf(fptr, "%s", text);
     fclose(fptr);
     set_status_text("File saved");
+    saved=1;
 }
 
+void quit(){
+    char resp[256];
 
+    if(length>0&&saved==0){
+        get_input("Unsaved file. Quit without saving? y/N ", resp, sizeof(resp));
+
+        if(strcmp(resp,"y")==0||strcmp(resp,"Y")==0){
+            printf("Quitting");
+            exit(0);
+        } else {
+            set_status_text(":)");
+        }
+    } else {
+        exit(0);
+    }
+    
+
+   
+}
 
 void find_text() {
     char findText[256];

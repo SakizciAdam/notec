@@ -107,6 +107,7 @@ void arg_parse(int argc, char **argv) {
                     length = j;
                     free(text);
                     text = new_text;
+                    saved=1;
                 }
                 fclose(file);
             }
